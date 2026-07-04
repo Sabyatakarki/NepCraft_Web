@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import Footer from "../_components/footer";
 import {
   Search,
   ShoppingCart,
@@ -37,7 +38,7 @@ export default function ShopPage() {
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("Categories");
   
   // Dark Global Portal Toast State (Matches Artisans style)
   const [toast, setToast] = useState<{ show: boolean; message: string }>({ show: false, message: "" });
@@ -59,13 +60,13 @@ export default function ShopPage() {
   };
 
   const filteredProducts =
-    selectedCategory === "All"
-      ? products
-      : products.filter(
-          (product) =>
-            product.category?.toLowerCase() ===
-            selectedCategory.toLowerCase()
-        );
+  selectedCategory === "Categories"
+    ? products
+    : products.filter(
+        (product) =>
+          product.category?.toLowerCase() ===
+          selectedCategory.toLowerCase()
+      );
 
   const fetchProducts = async () => {
     try {
@@ -167,17 +168,17 @@ export default function ShopPage() {
         {/* LEFT - Categories Dropdown */}
         <div className="relative group">
           <button className="flex items-center gap-2 border border-[#EFE4D6] px-3 py-1.5 rounded bg-white text-xs text-[#654E47] hover:bg-[#FAF4ED] transition-colors">
-            <Menu className="w-3.5 h-3.5" /> 
-            <span>Categories: <strong className="text-[#C87A53] font-bold">{selectedCategory}</strong></span>
-            <ChevronDown size={12} className="text-[#A8928A]" />
-          </button>
+  <Menu className="w-3.5 h-3.5" />
+  <span>{selectedCategory}</span>
+  <ChevronDown size={12} className="text-[#A8928A]" />
+</button>
           <div className="absolute left-0 top-full mt-1 w-48 bg-white border border-[#EFE4D6] rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
             <button onClick={() => setSelectedCategory("Pottery")} className="block w-full text-left px-4 py-2.5 text-xs hover:bg-[#FFF2E5]">Pottery</button>
             <button onClick={() => setSelectedCategory("Thangka")} className="block w-full text-left px-4 py-2.5 text-xs hover:bg-[#FFF2E5]">Thangka</button>
             <button onClick={() => setSelectedCategory("Accessories")} className="block w-full text-left px-4 py-2.5 text-xs hover:bg-[#FFF2E5]">Accessories</button>
             <button onClick={() => setSelectedCategory("Idol Statues")} className="block w-full text-left px-4 py-2.5 text-xs hover:bg-[#FFF2E5]">Idol Statues</button>
             <button onClick={() => setSelectedCategory("Souvenirs")} className="block w-full text-left px-4 py-2.5 text-xs hover:bg-[#FFF2E5]">Souvenirs</button>
-            <button onClick={() => setSelectedCategory("All")} className="block w-full text-left px-4 py-2.5 text-xs hover:bg-[#FFF2E5] font-bold text-[#C87A53] border-t border-[#F5EBE1]">Show All</button>
+            <button onClick={() => setSelectedCategory("Categories")}className="block w-full text-left px-4 py-2.5 text-xs hover:bg-[#FFF2E5] font-bold text-[#C87A53] border-t border-[#F5EBE1]">Show All</button>
           </div>
         </div>
 
@@ -271,60 +272,7 @@ export default function ShopPage() {
           </div>
         )}
       </section>
-
-      {/* BRAND FOOTER */}
-      <footer className="bg-[#FFF2E5] pt-12 border-t border-[#EFE4D6] mt-auto">
-        <div className="px-6 lg:px-16 pb-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg font-serif font-black tracking-tight text-[#3D251E]">
-                Nep<span className="text-[#C87A53]">Craft</span>
-              </span>
-            </div>
-            <p className="text-[#654E47] text-[11px] leading-relaxed mb-4 max-w-xs">
-              Bringing Nepal's rich heritage to your home. Handmade with love, made for you.
-            </p>
-          </div>
-
-          <div>
-            <h5 className="text-xs font-bold text-[#3D251E] mb-3 uppercase tracking-wider">Shop</h5>
-            <ul className="space-y-1.5 text-[11px] text-[#654E47]">
-              <li><a href="#" className="hover:text-[#C87A53]">Pottery</a></li>
-              <li><a href="#" className="hover:text-[#C87A53]">WoodenWork</a></li>
-              <li><a href="#" className="hover:text-[#C87A53]">Thangka</a></li>
-              <li><a href="#" className="hover:text-[#C87A53]">Jewelry</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h5 className="text-xs font-bold text-[#3D251E] mb-3 uppercase tracking-wider">Others</h5>
-            <ul className="space-y-1.5 text-[11px] text-[#654E47]">
-              <li><a href="#" className="hover:text-[#C87A53]">About Us</a></li>
-              <li><a href="#" className="hover:text-[#C87A53]">Our Artisans</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h5 className="text-xs font-bold text-[#3D251E] mb-3 uppercase tracking-wider">Help</h5>
-            <ul className="space-y-1.5 text-[11px] text-[#654E47]">
-              <li><a href="#" className="hover:text-[#C87A53]">FAQ's</a></li>
-              <li><a href="#" className="hover:text-[#C87A53]">Returns</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h5 className="text-xs font-bold text-[#3D251E] mb-3 uppercase tracking-wider">Newsletter</h5>
-            <div className="flex max-w-sm">
-              <input type="email" placeholder="Enter your email" className="w-full bg-white border border-[#EFE4D6] rounded-l px-3 py-1.5 text-xs focus:outline-none text-[#3D251E]" />
-              <button className="bg-[#C87A53] text-white px-3 rounded-r flex items-center justify-center"><Send className="w-3 h-3" /></button>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-[#3D251E] py-3 text-center text-[10px] text-white/70 tracking-wide font-medium">
-          <span>© 2026 NepCraft. All rights reserved.</span>
-        </div>
-      </footer>
+      <Footer/>
 
     </div>
   );

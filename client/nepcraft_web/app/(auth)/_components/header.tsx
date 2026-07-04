@@ -2,16 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  Search,
-  ShoppingCart,
-  Heart,
-  User,
-  Menu,
-} from "lucide-react";
+import { usePathname } from "next/navigation";
+import {Search,ShoppingCart,Heart,User,Menu,} from "lucide-react";
 
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -63,47 +59,63 @@ export default function Header() {
           </div>
 
           {/* Right */}
-          <div className="flex items-center justify-end gap-6 text-sm">
+          {/* Right */}
+<div className="flex items-center justify-end gap-6 text-sm">
 
-            <Link
-              href="/cart"
-              className="flex items-center gap-2 hover:text-[#C87A53] transition"
-            >
-              <ShoppingCart size={18} />
-              <span>Cart</span>
-            </Link>
+  <Link
+    href="/cart"
+    className={`flex items-center gap-2 transition ${
+      pathname === "/cart"
+        ? "text-[#C87A53] font-bold"
+        : "hover:text-[#C87A53]"
+    }`}
+  >
+    <ShoppingCart size={18} />
+    <span>Cart</span>
+  </Link>
 
-            <Link
-              href="/wishlist"
-              className="flex items-center gap-2 hover:text-[#C87A53] transition"
-            >
-              <Heart size={18} />
-              <span>Wishlist</span>
-            </Link>
+  <Link
+    href="/wishlist"
+    className={`flex items-center gap-2 transition ${
+      pathname === "/wishlist"
+        ? "text-[#C87A53] font-bold"
+        : "hover:text-[#C87A53]"
+    }`}
+  >
+    <Heart size={18} />
+    <span>Wishlist</span>
+  </Link>
 
-            {isLoggedIn ? (
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 hover:text-[#C87A53] transition"
-              >
-                <User size={18} />
-                <span>Profile</span>
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="flex items-center gap-2 hover:text-[#C87A53] transition"
-              >
-                <User size={18} />
-                <span>Login</span>
-              </Link>
-            )}
+  {isLoggedIn ? (
+    <Link
+      href="/profile"
+      className={`flex items-center gap-2 transition ${
+        pathname === "/profile"
+          ? "text-[#C87A53] font-bold"
+          : "hover:text-[#C87A53]"
+      }`}
+    >
+      <User size={18} />
+      <span>Profile</span>
+    </Link>
+  ) : (
+    <Link
+      href="/login"
+      className={`flex items-center gap-2 transition ${
+        pathname === "/login"
+          ? "text-[#C87A53] font-bold"
+          : "hover:text-[#C87A53]"
+      }`}
+    >
+      <User size={18} />
+      <span>Login</span>
+    </Link>
+  )}
 
-          </div>
+</div>
         </div>
       </header>
 
-      {/* NAVBAR */}
       <div className="px-6 lg:px-16 py-2 flex justify-between items-center border-b border-[#F5EBE1] text-sm font-medium">
 
         {/* Categories */}
@@ -139,25 +151,53 @@ export default function Header() {
         </div>
 
         {/* Navbar */}
-        <nav className="absolute left-1/2 -translate-x-1/2 flex gap-12 text-[#654E47]">
+<nav className="absolute left-1/2 -translate-x-1/2 flex gap-12 text-[#654E47]">
 
-          <Link href="/home" className="hover:text-[#C87A53]">
-            Home
-          </Link>
+  <Link
+    href="/home"
+    className={`pb-0.5 transition-colors ${
+      pathname === "/home"
+        ? "text-[#C87A53] font-bold border-b border-[#C87A53]"
+        : "hover:text-[#C87A53]"
+    }`}
+  >
+    Home
+  </Link>
 
-          <Link href="/Shop" className="hover:text-[#C87A53]">
-            Shop
-          </Link>
+  <Link
+    href="/Shop"
+    className={`pb-0.5 transition-colors ${
+      pathname === "/Shop"
+        ? "text-[#C87A53] font-bold border-b border-[#C87A53]"
+        : "hover:text-[#C87A53]"
+    }`}
+  >
+    Shop
+  </Link>
 
-          <Link href="/artisans" className="hover:text-[#C87A53]">
-            Artisans
-          </Link>
+  <Link
+    href="/artisans"
+    className={`pb-0.5 transition-colors ${
+      pathname === "/artisans"
+        ? "text-[#C87A53] font-bold border-b border-[#C87A53]"
+        : "hover:text-[#C87A53]"
+    }`}
+  >
+    Artisans
+  </Link>
 
-          <Link href="/aboutus" className="hover:text-[#C87A53]">
-            About Us
-          </Link>
+  <Link
+    href="/aboutus"
+    className={`pb-0.5 transition-colors ${
+      pathname === "/aboutus"
+        ? "text-[#C87A53] font-bold border-b border-[#C87A53]"
+        : "hover:text-[#C87A53]"
+    }`}
+  >
+    About Us
+  </Link>
 
-        </nav>
+</nav>
 
         <div className="w-24"></div>
 

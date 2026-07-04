@@ -8,6 +8,7 @@ import { HttpError } from './errors/http-error';
 import authRoutes from "./routes/auth.routes";
 import productRoutes from "./routes/Product.routes";
 import artisanRoutes from "./routes/artisan.route";
+import orderRoutes from "./routes/order.routes";
 
 const app: Application = express();
 
@@ -37,17 +38,17 @@ app.use(
   "/uploads/products",
   express.static(path.join(__dirname, "../public/products"))
 );
-
+//needed routes
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/artisans", artisanRoutes);
+app.use("/api/orders",orderRoutes);
 
+app.use(
+  "/uploads/orders",
+  express.static(path.join(__dirname, "../public/orders"))
+);
 
-// app.use(
-//   "/uploads/orders",
-//   express.static(path.join(__dirname, "../public/orders"))
-// );
-//users
 
 
 /* Root route */

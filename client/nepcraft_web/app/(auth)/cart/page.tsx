@@ -2,6 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from "next/navigation";
+import Header from '../_components/header';
+import Footer from '../_components/footer';
 import {
   Search,
   ShoppingCart,
@@ -28,6 +31,7 @@ const API_BASE = "http://localhost:5000";
 const IMAGE_BASE = "http://localhost:5000/uploads/products";
 
 export default function CartPage() {
+  const router = useRouter();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
@@ -94,70 +98,7 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-[#FFFDFB] text-[#3D251E] font-sans antialiased flex flex-col">
-      
-      {/* === TOP BAR HEADER === */}
-      <header className="border-b border-[#EFE4D6] bg-white px-6 lg:px-16 py-4">
-        <div className="grid grid-cols-3 items-center">
-          {/* LEFT - Logo */}
-          <div className="flex items-center gap-2 justify-start">
-            <img src="/vase.png" alt="NepCraft Logo" className="h-12 w-auto object-contain" />
-            <div>
-              <h1 className="font-serif text-[28px] leading-none text-[#5C4033]">NepCraft</h1>
-              <p className="text-[10px] text-[#8C7B75]">Handmade with hearts</p>
-            </div>
-          </div>
-
-          {/* CENTER - Search */}
-          <div className="flex justify-center">
-            <div className="relative w-full max-w-md">
-              <input
-                type="text"
-                placeholder="Search products, artisans..."
-                className="w-full border border-[#E8D9CA] rounded-md py-2 pl-4 pr-10 text-sm focus:outline-none focus:border-[#C87A53]"
-              />
-              <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#C87A53]" />
-            </div>
-          </div>
-
-          {/* RIGHT - Actions (Cart highlighted dynamically per your request) */}
-          <div className="flex items-center justify-end gap-6 text-sm">
-            <Link href="/cart" className="flex items-center gap-2 text-[#C87A53] font-bold transition">
-              <ShoppingCart size={18} /> <span>Cart</span>
-            </Link>
-            <Link href="/wishlist" className="flex items-center gap-2 hover:text-[#C87A53] transition">
-              <Heart size={18} /> <span>Wishlist</span>
-            </Link>
-            <Link href="/login" className="flex items-center gap-2 hover:text-[#C87A53] transition">
-              <User size={18} /> <span>Login</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* === NAVBAR === */}
-      <div className="px-6 lg:px-16 py-2 flex justify-between items-center border-b border-[#F5EBE1] text-sm font-medium relative bg-white">
-        <div className="relative group">
-          <button className="flex items-center gap-2 border border-[#EFE4D6] px-3 py-1.5 rounded bg-white text-xs text-[#654E47] hover:bg-[#FAF4ED] transition-colors">
-            <Menu className="w-3.5 h-3.5" /> Categories
-          </button>
-          <div className="absolute left-0 top-full mt-1 w-48 bg-white border border-[#EFE4D6] rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-            <Link href="/shop/pottery" className="block px-4 py-3 text-sm hover:bg-[#FFF2E5]">Pottery</Link>
-            <Link href="/shop/thangka" className="block px-4 py-3 text-sm hover:bg-[#FFF2E5]">Thangka</Link>
-            <Link href="/shop/accessories" className="block px-4 py-3 text-sm hover:bg-[#FFF2E5]">Accessories</Link>
-            <Link href="/shop/idol-statues" className="block px-4 py-3 text-sm hover:bg-[#FFF2E5]">Idol Statues</Link>
-            <Link href="/shop/souvenirs" className="block px-4 py-3 text-sm hover:bg-[#FFF2E5]">Souvenirs</Link>
-          </div>
-        </div>
-
-        <nav className="absolute left-1/2 -translate-x-1/2 flex gap-12 text-[#654E47]">
-          <Link href="/home" className="hover:text-[#C87A53] transition-colors">Home</Link>
-          <Link href="/Shop" className="hover:text-[#C87A53] transition-colors">Shop</Link>
-          <Link href="/artisans" className="hover:text-[#C87A53] transition-colors">Artisans</Link>
-          <Link href="/aboutus" className="hover:text-[#C87A53] transition-colors">About Us</Link>
-        </nav>
-
-        <div className="w-24"></div>
-      </div>
+      <Header />
 
       {/* === CART LAYOUT BODY === */}
       <main className="flex-grow px-6 lg:px-16 py-10 max-w-7xl mx-auto w-full">
@@ -252,9 +193,13 @@ useEffect(() => {
               <span className="text-base font-black text-[#C87A53]">NPR {grandTotal}</span>
             </div>
 
-            <button className="w-full bg-[#C87A53] hover:bg-[#B36640] text-white text-xs font-bold py-3.5 rounded-xl transition uppercase tracking-wider shadow-sm">
-              Proceed to Order
-            </button>
+          <button
+          type="button"
+          onClick={() => router.push("/orderDetail")}
+          className="w-full bg-[#C87A53] hover:bg-[#B36640] text-white text-xs font-bold py-3.5 rounded-xl transition uppercase tracking-wider shadow-sm"
+        >
+          Proceed to Order
+        </button>
           </div>
 
         </div>
@@ -272,7 +217,7 @@ useEffect(() => {
 
         {/* === RECOMMENDATION CORNER === */}
         <div className="mt-16 text-left">
-          <h3 className="text-lg font-serif font-bold text-[#3D251E] mb-6">Your may also like</h3>
+          <h3 className="text-lg font-serif font-bold text-[#3D251E] mb-6">You may also like</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {recommendedProducts.map((product) => (
              <div
@@ -313,59 +258,7 @@ useEffect(() => {
         </div>
       </main>
 
-      {/* === FOOTER LAYOUT === */}
-      <footer className="bg-[#FFF2E5] pt-12 border-t border-[#EFE4D6] mt-auto">
-        <div className="px-6 lg:px-16 pb-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 text-left">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg font-serif font-black text-[#3D251E]">
-                Nep<span className="text-[#C87A53]">Craft</span>
-              </span>
-            </div>
-            <p className="text-[#654E47] text-[11px] leading-relaxed mb-4 max-w-xs">
-              Bringing Nepal's rich heritage to your home. Handmade with love, made for you.
-            </p>
-          </div>
-
-          <div>
-            <h5 className="text-xs font-bold text-[#3D251E] mb-3 uppercase tracking-wider">Shop</h5>
-            <ul className="space-y-1.5 text-[11px] text-[#654E47]">
-              <li><Link href="/Shop" className="hover:text-[#C87A53]">Pottery</Link></li>
-              <li><Link href="/Shop" className="hover:text-[#C87A53]">Thangka Painting</Link></li>
-              <li><Link href="/Shop" className="hover:text-[#C87A53]">Woodcarving</Link></li>
-              <li><Link href="/Shop" className="hover:text-[#C87A53]">Idol Statues</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h5 className="text-xs font-bold text-[#3D251E] mb-3 uppercase tracking-wider">Company</h5>
-            <ul className="space-y-1.5 text-[11px] text-[#654E47]">
-              <li><Link href="/aboutus" className="hover:text-[#C87A53]">About Us</Link></li>
-              <li><Link href="/artisans" className="hover:text-[#C87A53]">Our Artisans</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h5 className="text-xs font-bold text-[#3D251E] mb-3 uppercase tracking-wider">Help</h5>
-            <ul className="space-y-1.5 text-[11px] text-[#654E47]">
-              <li><a href="#" className="hover:text-[#C87A53]">FAQ's</a></li>
-              <li><a href="#" className="hover:text-[#C87A53]">Returns & Privacy</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h5 className="text-xs font-bold text-[#3D251E] mb-3 uppercase tracking-wider">Newsletter</h5>
-            <div className="flex max-w-sm mt-2">
-              <input type="email" placeholder="Your email" className="w-full bg-white border border-[#EFE4D6] rounded-l px-3 py-1.5 text-xs focus:outline-none" />
-              <button className="bg-[#C87A53] hover:bg-[#B36640] text-white px-3 rounded-r transition"><Send size={12} /></button>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-[#3D251E] py-3 text-center text-[10px] text-white/70 font-medium tracking-wide">
-          <span>© 2026 NepCraft. All rights reserved.</span>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

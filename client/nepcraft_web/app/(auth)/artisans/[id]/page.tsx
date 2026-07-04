@@ -4,23 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import {
-  Search,
-  ShoppingCart,
-  Heart,
-  User,
-  Menu,
-  MapPin,
-  X,
-  Award,
-  ShoppingBag,
-  Users,
-  Briefcase,
-  Layers,
-  Wrench,
-  Globe,
-  Send
-} from 'lucide-react';
+import {Search,ShoppingCart,Heart,User,Menu,MapPin,X,Award,ShoppingBag,Users,Briefcase,Layers,Wrench,Globe,Send} from 'lucide-react';
 
 type ArtisanItem = {
   _id: string;
@@ -32,22 +16,26 @@ type ArtisanItem = {
   experience: number;
 };
 
-const MOCK_PRODUCTS = [
-  { id: '1', title: 'Handmade clay pots', price: 'Rs 450/-', img: 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&q=80&w=300' },
-  { id: '2', title: 'Metallic utensils', price: 'Rs 450/-', img: 'https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&q=80&w=300' },
-  { id: '3', title: 'Flower vase', price: 'Rs 450/-', img: 'https://images.unsplash.com/photo-1581781870027-04212e231e96?auto=format&fit=crop&q=80&w=300' },
-  { id: '4', title: 'Clay Diya', price: 'Rs 100/-', img: 'https://images.unsplash.com/photo-1605714457788-b223d463f25c?auto=format&fit=crop&q=80&w=300' },
-];
+type ProductItem = {
+  _id: string;
+  name: string;
+  price: number;
+  category: string;
+  image: string;
+};
 
 const API_BASE = "http://localhost:5000";
+const PRODUCT_IMAGE_BASE = "http://localhost:5000/uploads/products";
 
 export default function ArtisanProfilePage() {
   const params = useParams();
   const artisanId = params.id as string;
 
   const [artisan, setArtisan] = useState<ArtisanItem | null>(null);
+  const [artisanProducts, setArtisanProducts] = useState<ProductItem[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [toast, setToast] = useState<{ show: boolean; message: string }>({ show: false, message: "" });
 
   useEffect(() => {
@@ -67,6 +55,10 @@ export default function ArtisanProfilePage() {
       
       if (json.success) {
         setArtisan(json.artisan);
+        // Once the artisan data loads, fetch products matching their craft category role
+        if (json.artisan?.role) {
+          fetchRelatedProducts(json.artisan.role);
+        }
       }
     } catch (error) {
       console.error("Error retrieving artisan profile details:", error);
@@ -75,7 +67,26 @@ export default function ArtisanProfilePage() {
     }
   };
 
-  // Follow button syncs perfectly to your wishlist localStorage state
+  // Fetches live database products matching the current artisan's category role
+  const fetchRelatedProducts = async (craftRole: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/products`);
+      const json = await res.json();
+      
+      if (json.data) {
+        // Filter products whose category matches the artisan's active role
+        const filtered = json.data.filter((product: ProductItem) => 
+          product.category?.toLowerCase() === craftRole.toLowerCase()
+        );
+        setArtisanProducts(filtered);
+      }
+    } catch (error) {
+      console.error("Error fetching related artisan products:", error);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
   const handleFollowClick = (id: string, name: string) => {
     let updatedFavorites: string[];
     if (favorites.includes(id)) {
@@ -124,7 +135,7 @@ export default function ArtisanProfilePage() {
       
       {/* === GLOBAL PORTAL TOAST POPUP === */}
       {toast.show && typeof window !== 'undefined' && createPortal(
-        <div className="fixed top-6 right-6 z-[100] flex items-center gap-3 bg-[#3D251E] text-[#FFFDFB] px-5 py-3.5 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#5C4033] max-w-sm pointer-events-auto transition-all duration-300 animate-in slide-in-from-top-5">
+        <div className="fixed top-6 right-6 z- flex items-center gap-3 bg-[#3D251E] text-[#FFFDFB] px-5 py-3.5 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#5C4033] max-w-sm pointer-events-auto transition-all duration-300 animate-in slide-in-from-top-5">
           <Heart size={16} className="text-[#C87A53] fill-current shrink-0" />
           <p className="text-xs font-medium tracking-wide leading-relaxed">{toast.message}</p>
           <button onClick={() => setToast({ show: false, message: "" })} className="ml-4 p-1 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors shrink-0">
@@ -134,7 +145,7 @@ export default function ArtisanProfilePage() {
         document.body
       )}
 
-      {/* === HEADER (Standard matching image_a14f79.png) === */}
+      {/* === HEADER === */}
       <header className="border-b border-[#EFE4D6] bg-white px-6 py-4">
         <div className="grid grid-cols-3 items-center">
           <div className="flex items-center gap-2 justify-start">
@@ -174,7 +185,7 @@ export default function ArtisanProfilePage() {
         <div className="w-24" />
       </div>
 
-      {/* === MAIN CONTENT - Streamlined margins to match Figma padding === */}
+      {/* === MAIN CONTENT === */}
       <main className="flex-grow px-6 py-10 w-full mx-auto">
         
         {/* ARTISAN INTRO SECTION */}
@@ -248,7 +259,7 @@ export default function ArtisanProfilePage() {
         {/* BIOGRAPHY & SIDE SPECS */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
           <div className="lg:col-span-7">
-            <h3 className="font-serif text-lg font-bold text-[#3D251E] mb-3">About {artisan.name.split(' ')[0]}</h3>
+            <h3 className="font-serif text-lg font-bold text-[#3D251E] mb-3">About {artisan.name.split(' ')}</h3>
             <p className="text-[#654E47] text-xs font-light leading-relaxed mb-5">
               {artisan.bio || `I am ${artisan.name}, a pottery artist from ${artisan.location}. Inspired from her grandmother she started her pottery skills as a hobby. I creates beautiful and Eco-friendly pottery that blends tradition with functionality.`}
             </p>
@@ -296,34 +307,47 @@ export default function ArtisanProfilePage() {
 
         {/* PRODUCTS LIST */}
         <section className="mb-6">
-          <h3 className="font-serif text-lg font-bold text-[#3D251E] mb-4">{artisan.name.split(' ')[0]}'s Top Selling Products</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {MOCK_PRODUCTS.map((product) => (
-              <div key={product.id} className="bg-white border border-[#F2E6DA] rounded-xl p-2.5 flex flex-col justify-between group relative shadow-xs">
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-xs text-[8px] px-1.5 py-0.5 rounded font-medium text-[#3D251E] border border-[#EFE4D6]">
-                  Pottery
-                </div>
-                <div className="w-full aspect-square rounded-lg overflow-hidden bg-[#FAF1E6] mb-2.5">
-                  <img src={product.img} alt={product.title} className="w-full h-full object-cover group-hover:scale-102 transition duration-200" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-medium text-[#3D251E] mb-1 truncate">{product.title}</h4>
-                  <div className="flex justify-between items-center mt-2 pt-1.5 border-t border-[#F5EBE1]">
-                    <span className="text-xs font-bold text-[#3D251E]">{product.price}</span>
-                    <button className="p-1 border border-[#EFE4D6] rounded hover:bg-[#FFF2E5] hover:text-[#C87A53] text-[#A8928A] transition">
-                      <ShoppingCart size={12} />
-                    </button>
+          <h3 className="font-serif text-lg font-bold text-[#3D251E] mb-4">{artisan.name.split(' ')}&apos;s Top Selling Products</h3>
+          
+          {loadingProducts ? (
+            <div className="text-xs text-[#8C7B75] animate-pulse">Loading artisan catalogue items...</div>
+          ) : artisanProducts.length === 0 ? (
+            <div className="text-xs text-[#8C7B75] py-4 bg-[#FFFBF7] border border-[#F2E6DA] rounded-xl px-4 text-center">
+              No products available from this artisan at the moment.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {artisanProducts.map((product) => (
+                <div key={product._id} className="bg-white border border-[#F2E6DA] rounded-xl p-2.5 flex flex-col justify-between group relative shadow-xs">
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-xs text-[8px] px-1.5 py-0.5 rounded font-medium text-[#3D251E] border border-[#EFE4D6] capitalize">
+                    {product.category}
+                  </div>
+                  <div className="w-full aspect-square rounded-lg overflow-hidden bg-[#FAF1E6] mb-2.5">
+                    <img 
+                      src={product.image.startsWith('http') ? product.image : `${PRODUCT_IMAGE_BASE}/${product.image}`} 
+                      alt={product.name} 
+                      className="w-full h-full object-cover group-hover:scale-102 transition duration-200" 
+                    />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-medium text-[#3D251E] mb-1 truncate">{product.name}</h4>
+                    <div className="flex justify-between items-center mt-2 pt-1.5 border-t border-[#F5EBE1]">
+                      <span className="text-xs font-bold text-[#3D251E]">Rs {product.price.toLocaleString()}</span>
+                      <button className="p-1 border border-[#EFE4D6] rounded hover:bg-[#FFF2E5] hover:text-[#C87A53] text-[#A8928A] transition">
+                        <ShoppingCart size={12} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
       </main>
+
       {/* === FOOTER COMPONENT === */}
       <footer className="bg-[#FFF2E5] pt-12 border-t border-[#EFE4D6]">
         <div className="px-6 lg:px-16 pb-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
-          
           <div>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg font-serif font-black text-[#3D251E]">
@@ -333,58 +357,36 @@ export default function ArtisanProfilePage() {
             <p className="text-[#654E47] text-[11px] leading-relaxed mb-4 max-w-xs">
               Bringing Nepal's rich heritage to your home. Handmade with love, made for you.
             </p>
-            <div className="flex items-center gap-3 text-[#3D251E]">
-              <a href="#" className="w-6 h-6 rounded-full bg-white flex items-center justify-center border border-[#EFE4D6] hover:text-[#C87A53] transition"><span className="text-xs">fb</span></a>
-              <a href="#" className="w-6 h-6 rounded-full bg-white flex items-center justify-center border border-[#EFE4D6] hover:text-[#C87A53] transition"><span className="text-xs">ig</span></a>
-              <a href="#" className="w-6 h-6 rounded-full bg-white flex items-center justify-center border border-[#EFE4D6] hover:text-[#C87A53] transition"><span className="text-xs">tk</span></a>
-              <a href="#" className="w-6 h-6 rounded-full bg-white flex items-center justify-center border border-[#EFE4D6] hover:text-[#C87A53] transition"><span className="text-xs">yt</span></a>
-            </div>
           </div>
-
           <div>
             <h5 className="text-xs font-bold text-[#3D251E] mb-3 uppercase tracking-wider">Shop</h5>
             <ul className="space-y-1.5 text-[11px] text-[#654E47]">
-              <li><Link href="/shop" className="hover:text-[#C87A53]">Pottery</Link></li>
-              <li><Link href="/shop" className="hover:text-[#C87A53]">WoodenWork</Link></li>
-              <li><Link href="/shop" className="hover:text-[#C87A53]">Thangka</Link></li>
-              <li><Link href="/shop" className="hover:text-[#C87A53]">Jewelry</Link></li>
-              <li><Link href="/shop" className="hover:text-[#C87A53]">Pashmina shawls</Link></li>
+              <li><Link href="/Shop" className="hover:text-[#C87A53]">Pottery</Link></li>
+              <li><Link href="/Shop" className="hover:text-[#C87A53]">Thangka Painting</Link></li>
             </ul>
           </div>
-
           <div>
-            <h5 className="text-xs font-bold text-[#3D251E] mb-3 uppercase tracking-wider">Others</h5>
+            <h5 className="text-xs font-bold text-[#3D251E] mb-3 uppercase tracking-wider">Company</h5>
             <ul className="space-y-1.5 text-[11px] text-[#654E47]">
-              <li><Link href="/about" className="hover:text-[#C87A53]">About Us</Link></li>
-              <li><a href="#" className="hover:text-[#C87A53]">Stories</a></li>
+              <li><Link href="/aboutus" className="hover:text-[#C87A53]">About Us</Link></li>
               <li><Link href="/artisans" className="hover:text-[#C87A53]">Our Artisans</Link></li>
-              <li><a href="#" className="hover:text-[#C87A53]">Contact Us</a></li>
-              <li><a href="#" className="hover:text-[#C87A53]">Career</a></li>
             </ul>
           </div>
-
           <div>
             <h5 className="text-xs font-bold text-[#3D251E] mb-3 uppercase tracking-wider">Help</h5>
             <ul className="space-y-1.5 text-[11px] text-[#654E47]">
               <li><a href="#" className="hover:text-[#C87A53]">FAQ's</a></li>
-              <li><a href="#" className="hover:text-[#C87A53]">Our materials</a></li>
-              <li><a href="#" className="hover:text-[#C87A53]">Quality</a></li>
-              <li><a href="#" className="hover:text-[#C87A53]">Returns</a></li>
-              <li><a href="#" className="hover:text-[#C87A53]">Privacy policy</a></li>
+              <li><a href="#" className="hover:text-[#C87A53]">Returns & Privacy</a></li>
             </ul>
           </div>
-
           <div>
             <h5 className="text-xs font-bold text-[#3D251E] mb-3 uppercase tracking-wider">Newsletter</h5>
-            <p className="text-[11px] text-[#654E47] mb-3 leading-relaxed">Follow us to get new updates on arrivals and artisans</p>
-            <div className="flex max-w-sm">
-              <input type="email" placeholder="Enter your email" className="w-full bg-white border border-[#EFE4D6] rounded-l px-3 py-1.5 text-xs focus:outline-none text-[#3D251E]" />
+            <div className="flex max-w-sm mt-2">
+              <input type="email" placeholder="Your email" className="w-full bg-white border border-[#EFE4D6] rounded-l px-3 py-1.5 text-xs focus:outline-none" />
               <button className="bg-[#C87A53] hover:bg-[#B36640] text-white px-3 rounded-r transition"><Send size={12} /></button>
             </div>
           </div>
-
         </div>
-
         <div className="bg-[#3D251E] py-3 text-center text-[10px] text-white/70 tracking-wide font-medium">
           <span>© 2026 NepCraft. All rights reserved.</span>
         </div>
