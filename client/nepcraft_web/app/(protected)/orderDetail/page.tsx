@@ -95,7 +95,7 @@ export default function OrderPage() {
       if (data.success) {
         alert("Order placed successfully!");
         localStorage.removeItem("nepcraft_cart");
-        router.push("/orders");
+        router.push("/order");
       } else {
         alert(data.message || "Failed to process transaction.");
       }

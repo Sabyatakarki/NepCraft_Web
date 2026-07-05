@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '../_components/header';
 import Footer from '../_components/footer'; 
-import { User, MapPin, Mail, Phone, Pencil, Clock, ShoppingBag, Heart, LogOut } from 'lucide-react';
+import { User, MapPin, Mail, Phone, Pencil, Clock, ShoppingBag, Heart, LogOut, Loader2 } from 'lucide-react';
 
 type UserProfile = {
   name: string;
@@ -14,18 +14,26 @@ type UserProfile = {
   phone: string;
   gender: string;
   memberSince: string;
-  orderHistoryCount: number;
   wishlistCount: number;
 };
 
-type OrderItem = {
-  id: string;
-  title: string;
-  qty: number;
-  price: number;
+// Updated type mapping to align with your API schema structure
+type OrderItemResponse = {
+  _id: string;
+  totalAmount: number;
   status: string;
-  img: string;
+  items: Array<{
+    _id: string;
+    quantity: number;
+    price: number;
+    product?: {
+      name: string;
+      image: string;
+    };
+  }>;
 };
+
+const API_BASE = 'http://localhost:5000/api/orders';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -38,16 +46,40 @@ export default function ProfilePage() {
     phone: '977+ 9847378337',
     gender: 'Female',
     memberSince: 'May 2026',
-    orderHistoryCount: 3,
     wishlistCount: 10,
   });
 
-  // Mocked Order History
-  const [orders, setOrders] = useState<OrderItem[]>([
-    { id: '1', title: 'Ceramic cups', qty: 1, price: 300, status: 'Order received', img: 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&q=80&w=300' },
-    { id: '2', title: 'Ceramic cups', qty: 1, price: 300, status: 'Order received', img: 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&q=80&w=300' },
-    { id: '3', title: 'Ceramic cups', qty: 1, price: 300, status: 'Order received', img: 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&q=80&w=300' },
-  ]);
+  // Dynamic order states loaded from API
+  const [orders, setOrders] = useState<OrderItemResponse[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState<boolean>(true);
+
+  useEffect(() => {
+    fetchOrderHistory();
+  }, []);
+
+  const fetchOrderHistory = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const res = await fetch(`${API_BASE}/my-orders`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        // Keeps only the latest 3 elements for the dashboard snapshot feed
+        setOrders(data.data || []);
+      }
+    } catch (err) {
+      console.error('Error fetching profile dynamic history:', err);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -60,11 +92,8 @@ export default function ProfilePage() {
   };
 
   const handleLogout = () => {
-    // Clear dynamic session records securely 
     localStorage.removeItem('token');
     localStorage.removeItem('nepcraft_cart');
-    
-    // Smooth client-side route navigation replacement
     router.push('/login');
   };
 
@@ -107,7 +136,9 @@ export default function ProfilePage() {
               <div className="flex flex-col items-center px-1">
                 <ShoppingBag size={14} className="text-[#A8928A] mb-1" />
                 <span className="text-[9px] text-[#8C7B75] block leading-none">Order History</span>
-                <span className="text-[11px] font-bold text-[#3D251E] mt-0.5">{profile.orderHistoryCount}</span>
+                <span className="text-[11px] font-bold text-[#3D251E] mt-0.5">
+                  {loadingOrders ? '...' : orders.length}
+                </span>
               </div>
               <div className="flex flex-col items-center px-1">
                 <Heart size={14} className="text-[#A8928A] mb-1" />
@@ -224,44 +255,77 @@ export default function ProfilePage() {
         {/* ORDER HISTORY GRID SECTION */}
         <section className="mb-6">
           <div className="flex justify-between items-baseline mb-4">
-            <h3 className="font-serif text-xl font-bold text-[#3D251E]">Order History</h3>
+            <h3 className="font-serif text-xl font-bold text-[#3D251E]">Recent Orders</h3>
             <Link href="/orders" className="text-xs font-serif text-[#C87A53] hover:underline flex items-center gap-0.5">
               View all
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {orders.map((order, index) => (
-              <div 
-                key={`${order.id}-${index}`} 
-                className="bg-white border border-[#F2E6DA] rounded-xl p-3 flex gap-4 items-center shadow-xs"
-              >
-                {/* Order Item Craft Artwork Thumbnail */}
-                <div className="w-24 h-20 rounded-lg overflow-hidden bg-[#FAF1E6] shrink-0 border border-[#FDF9F4]">
-                  <img src={order.img} alt={order.title} className="w-full h-full object-cover" />
-                </div>
+          {loadingOrders ? (
+            <div className="flex items-center justify-center py-12 text-[#A8928A] gap-2">
+              <Loader2 className="animate-spin" size={20} />
+              <span className="text-xs font-medium">Loading history...</span>
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="text-center py-12 border border-dashed border-[#F2E6DA] rounded-xl bg-white">
+              <p className="text-xs text-[#8C7B75]">No transactions recorded yet.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {/* Slice to show only the most recent 3 items inside dashboard overview snippet */}
+              {orders.slice(0, 3).map((order) => {
+                // Safely grab information from the first nested item wrapper block
+                const directItem = order.items?.[0];
+                return (
+                  <div 
+                    key={order._id} 
+                    className="bg-white border border-[#F2E6DA] rounded-xl p-3 flex gap-4 items-center shadow-xs"
+                  >
+                    {/* Dynamic Artwork Thumbnail */}
+                    <div className="w-24 h-20 rounded-lg overflow-hidden bg-[#FAF1E6] shrink-0 border border-[#FDF9F4]">
+                      <img 
+                        src={`http://localhost:5000/uploads/products/${directItem?.product?.image}`} 
+                        alt={directItem?.product?.name || "Handicraft Artwork"} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback source placeholder 
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&q=80&w=300';
+                        }}
+                      />
+                    </div>
 
-                {/* Info and Navigation Actions */}
-                <div className="flex-grow flex flex-col justify-between h-full py-0.5">
-                  <div>
-                    <h4 className="font-serif text-xs font-bold text-[#3D251E] tracking-tight">{order.title}</h4>
-                    <p className="text-[10px] text-[#8C7B75] mt-0.5">Qty : {order.qty}</p>
-                    <p className="text-[#C87A53] text-[11px] font-bold mt-0.5">NPR {order.price}</p>
+                    {/* Info Metadata Block */}
+                    <div className="flex-grow flex flex-col justify-between h-full py-0.5 min-w-0">
+                      <div className="min-w-0">
+                        <h4 className="font-serif text-xs font-bold text-[#3D251E] tracking-tight truncate">
+                          {directItem?.product?.name || 'Order Package Summary'}
+                        </h4>
+                        {order.items.length > 1 && (
+                          <p className="text-[9px] text-[#C87A53] font-medium font-sans italic">
+                            + {order.items.length - 1} more item(s)
+                          </p>
+                        )}
+                        <p className="text-[10px] text-[#8C7B75] mt-0.5">Total Qty: {order.items.reduce((acc, current) => acc + current.quantity, 0)}</p>
+                        <p className="text-[#C87A53] text-[11px] font-bold mt-0.5">Rs {order.totalAmount.toLocaleString()}</p>
+                      </div>
+                      
+                      <div className="flex justify-between items-center mt-2 gap-2">
+                        <span className="text-[10px] text-amber-600 font-medium capitalize truncate max-w-[80px]">
+                          {order.status || 'Received'}
+                        </span>
+                        <Link 
+                          href={`/order`} 
+                          className="bg-[#C87A53] hover:bg-[#B36640] text-white text-[9px] px-3 py-1 rounded transition font-medium shrink-0"
+                        >
+                          View Details
+                        </Link>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-[10px] text-emerald-600 font-medium">{order.status}</span>
-                    <Link 
-                      href={`/orders/${order.id}`} 
-                      className="bg-[#C87A53] hover:bg-[#B36640] text-white text-[9px] px-3 py-1 rounded transition font-medium"
-                    >
-                      View details
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
       </main>

@@ -156,8 +156,8 @@ export default function ShopPage() {
             <Link href="/wishlist" className="flex items-center gap-2 hover:text-[#C87A53] transition">
               <Heart size={18} /> <span>Wishlist</span>
             </Link>
-            <Link href="/login" className="flex items-center gap-2 hover:text-[#C87A53] transition">
-              <User size={18} /> <span>Login</span>
+            <Link href="/profile" className="flex items-center gap-2 hover:text-[#C87A53] transition">
+              <User size={18} /> <span>Profile</span>
             </Link>
           </div>
         </div>

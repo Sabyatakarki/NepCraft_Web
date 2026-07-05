@@ -5,19 +5,25 @@ import Link from "next/link";
 import Footer from "../_components/footer";
 import Header from "../_components/header";
 import {
-  Search,
   ShoppingCart,
   Heart,
-  User,
   ArrowRight,
-  Menu,
-  Send
+  Loader2
 } from "lucide-react";
 
 type Slide = {
   title: string;
   desc: string;
   img: string;
+};
+
+// Defined Product Type matching your database schema
+type Product = {
+  _id: string;
+  name: string;
+  price: number;
+  image: string;
+  category?: string;
 };
 
 export default function NepCraftHome() {
@@ -38,41 +44,56 @@ export default function NepCraftHome() {
       img: "/artisans.png"
     }
   ];
-  const [search, setSearch] = useState('');
-  <input
-  value={search}
-  onChange={(e) => setSearch(e.target.value)}
-  
-/>
 
   const [current, setCurrent] = useState(0);
+  
+  // States for backend products
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState<boolean>(true);
 
+  // Auto-sliding banner effect
   useEffect(() => {
-    // Configured for LEFT sliding cycle
     const interval = setInterval(() => {
-      // Loop to the next slide index (incrementing index to move left in cycle)
       setCurrent((prev) => (prev + 1) % slides.length);
     }, 4500); 
 
     return () => clearInterval(interval);
-  }, []); // Cycle relies on state update, empty dependency array keeps interval stable
+  }, [slides.length]);
+
+  // Fetch Featured Products from Backend API
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/products");
+        const data = await res.json();
+        
+        if (data.success || Array.isArray(data)) {
+          const items = data.data || data;
+          setProducts(items.slice(0, 5)); // Take top 5 items for the row layout
+        }
+      } catch (err) {
+        console.error("Failed to load featured products:", err);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    fetchFeaturedProducts();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#FFFDFB] text-[#3D251E] font-sans antialiased">
- <Header />
-<div className="px-6 lg:px-16 py-2 flex justify-between items-center border-b border-[#F5EBE1] text-sm font-medium">
-</div>
-
-      {/* === ENHANCED HERO SLIDER MATCHING FIGMA LAYOUT (LEFT MOVE, NO CAROUSEL BTNS, CLEAN IMG SIDE) === */}
+      <Header />
+      
+      {/* === HERO SLIDER === */}
       <section className="px-6 lg:px-16 py-6">
         <div className="relative rounded-[32px] overflow-hidden min-h-[480px] lg:min-h-[520px] shadow-sm grid grid-cols-1 md:grid-cols-2 group">
           
-          {/* Dynamic Content Panel Layer with Left Slide transition context */}
           <div className="bg-[#FFF2E5] z-10 w-full p-8 lg:p-16 flex flex-col justify-center border-r border-[#FAFDFB]/10">
             <span className="text-[11px] font-bold tracking-widest text-[#C87A53] uppercase mb-3 block">
               Authentic Heritage
             </span>
-            <h2 className="text-3xl lg:text-5xl font-serif font-black text-[#3D251E] leading-[1.15] mb-4 transition-all duration-700 ease-in-out transform">
+            <h2 className="text-3xl lg:text-5xl font-serif font-black text-[#3D251E] leading-[1.15] mb-4">
               {slides[current].title}
             </h2>
             <p className="text-sm lg:text-base text-[#654E47] mb-8 max-w-sm font-medium leading-relaxed">
@@ -81,11 +102,11 @@ export default function NepCraftHome() {
 
             <div className="flex flex-wrap gap-4">
               <Link
-              href="/Shop"
-              className="bg-[#C87A53] hover:bg-[#B36640] text-white text-xs lg:text-sm font-semibold px-7 py-3 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95"
-            >
-              Shop Now
-            </Link>
+                href="/Shop"
+                className="bg-[#C87A53] hover:bg-[#B36640] text-white text-xs lg:text-sm font-semibold px-7 py-3 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95"
+              >
+                Shop Now
+              </Link>
               <Link
                 href="/artisans"
                 className="bg-white/80 backdrop-blur-sm hover:bg-white text-[#3D251E] border border-[#EFE4D6] text-xs lg:text-sm font-semibold px-7 py-3 rounded-xl transition-all active:scale-95 shadow-sm"
@@ -94,7 +115,6 @@ export default function NepCraftHome() {
               </Link>
             </div>
 
-            {/* Slider Dots / Progress Controls */}
             <div className="flex gap-2.5 mt-12">
               {slides.map((_, i) => (
                 <button
@@ -109,7 +129,6 @@ export default function NepCraftHome() {
             </div>
           </div>
 
-          {/* Clean Image Side Block Layer with Fade-Left Transition */}
           <div className="relative w-full h-full bg-[#FAF1E6]">
             {slides.map((slide, i) => (
               <div
@@ -118,116 +137,100 @@ export default function NepCraftHome() {
                   i === current ? "opacity-100 z-10 translate-x-0" : "opacity-0 -z-10 -translate-x-10"
                 }`}
                 style={{ backgroundImage: `url('${slide.img}')` }}
-              >
-                {/* No Opacity Gradient Overlay - Displaying Clean Image Side */}
-              </div>
+              />
             ))}
           </div>
 
         </div>
       </section>
 
-      {/* --- ICON BASED CATEGORIES NAVIGATION SECTION --- */}
+      {/* === SHOP BY CATEGORY SECTION === */}
       <section className="px-6 lg:px-16 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-base font-serif font-bold text-[#3D251E]">Shop by Category</h3>
-          <a href="#" className="text-xs font-medium text-[#C87A53] flex items-center gap-1 hover:underline">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-serif font-bold text-[#3D251E]">Shop by Category</h3>
+          <Link href="/Shop" className="text-xs font-medium text-[#C87A53] flex items-center gap-1 hover:underline">
             View All <ArrowRight className="w-3 h-3" />
-          </a>
+          </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-  {
-    title: "Pottery",
-    icon: "🏺",
-    link: "/shop/pottery",
-  },
-  {
-    title: "Pashmina Shawls",
-    icon: "🧣",
-    link: "/shop/pashmina",
-  },
-  {
-    title: "Jewelry",
-    icon: "📿",
-    link: "/shop/jewelry",
-  },
-  {
-    title: "Woodwork",
-    icon: "🪵",
-    link: "/shop/woodwork",
-  },
-  {
-    title: "Idol Statues",
-    icon: "🔱",
-    link: "/shop/idol-statues",
-  },
-  {
-    title: "Souvenirs",
-    icon: "🎁",
-    link: "/shop/souvenirs",
-  },
-].map((cat, idx) => (
+            { title: "Pottery", icon: "🏺", link: "/Shop?category=pottery" },
+            { title: "Pashmina swals", icon: "🧣", link: "/Shop?category=pashmina" },
+            { title: "Jewelry", icon: "📿", link: "/Shop?category=jewelry" },
+            { title: "Woodwork", icon: "🪵", link: "/Shop?category=woodwork" },
+            { title: "Idol statues", icon: "🔱", link: "/Shop?category=idols" },
+            { title: "Souvenirs", icon: "🎁", link: "/Shop?category=souvenirs" },
+          ].map((cat, idx) => (
             <Link
-  href={cat.link}
-  key={idx}
-  className="bg-[#FFF2E5]/60 hover:bg-[#FAF1E6] border border-[#F4EBE1] rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all group hover:shadow-md hover:-translate-y-1"
->
-              <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center text-2xl mb-3 shadow-sm group-hover:scale-105 transition-transform">
+              href={cat.link}
+              key={idx}
+              className="bg-[#FFF2E5] border border-[#EFE4D6]/40 rounded-sm py-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:bg-[#FAF1E6]"
+            >
+              <div className="text-5xl mb-4 select-none">
                 {cat.icon}
               </div>
-              <span className="text-xs font-semibold text-[#3D251E]">{cat.title}</span>
+              <span className="text-[11px] font-medium text-[#3D251E] tracking-tight">{cat.title}</span>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* --- CHOSEN FEATURED PRODUCTS GRID ROW --- */}
+      {/* === DYNAMIC FEATURED PRODUCTS GRID ROW === */}
       <section className="px-6 lg:px-16 py-8">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-base font-serif font-bold text-[#3D251E]">Featured Products</h3>
-          <a href="#" className="text-xs font-medium text-[#C87A53] flex items-center gap-1 hover:underline">
+          <Link href="/Shop" className="text-xs font-medium text-[#C87A53] flex items-center gap-1 hover:underline">
             View All <ArrowRight className="w-3 h-3" />
-          </a>
+          </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {[
-            { title: "Pottery Container", price: "from rs 1250/-", img: "/pottery.jpg" },
-            { title: "Buddha Thangka Painting", price: "form rs 4250/-", img: "/Thangka.jpg" },
-            { title: "Silver Women Earrings", price: "form rs 2150/-", img: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=400" },
-            { title: "Metal Shiva Statue", price: "form rs 3150/-", img: "/Shiva.jpg" },
-            { title: "Handcrafted Copper Bowl", price: "form rs 3150/-", img: "/bowl.jpg" } 
-          ].map((item, idx) => (
-            <Link
-  href={`/product/${idx + 1}`}
-  key={idx}
-  className="bg-white border border-[#EFE4D6] rounded-xl overflow-hidden shadow-sm flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all"
->
-              <div className="relative aspect-square w-full bg-[#FAF1E6] overflow-hidden">
-                <img src={item.img} alt={item.title} className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300" />
-                <button className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow text-[#A8928A] hover:text-red-500 transition-colors z-10">
-                  <Heart className="w-3.5 h-3.5" />
-                  
-                </button>
-              </div>
-              <div className="p-3 bg-white">
-                <h4 className="text-[11px] font-medium text-[#A8928A] truncate">{item.title}</h4>
-                <div className="flex items-center justify-between mt-1 pt-2 border-t border-[#F5EBE1]">
-                  <span className="text-xs font-bold text-[#3D251E] lowercase tracking-tight">{item.price}</span>
-                  <button className="w-6 h-6 border border-[#EFE4D6] rounded flex items-center justify-center text-[#C87A53] hover:bg-[#FAF1E6] transition-colors">
-                    <ShoppingCart className="w-3 h-3" />
+        {loadingProducts ? (
+          <div className="flex items-center justify-center py-16 text-[#A8928A] gap-2">
+            <Loader2 className="animate-spin" size={20} />
+            <span className="text-xs font-medium">Fetching unique crafts...</span>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-12 border border-dashed border-[#EFE4D6] rounded-xl bg-white">
+            <p className="text-xs text-[#8C7B75]">No products available on the showcase shelf right now.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {products.map((item) => (
+              <Link
+                href={`/product/${item._id}`}
+                key={item._id}
+                className="bg-white border border-[#EFE4D6] rounded-xl overflow-hidden shadow-sm flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all"
+              >
+                <div className="relative aspect-square w-full bg-[#FAF1E6] overflow-hidden">
+                  <img 
+                    src={`http://localhost:5000/uploads/products/${item.image}`} 
+                    alt={item.name} 
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300" 
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&q=80&w=400';
+                    }}
+                  />
+                  <button className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow text-[#A8928A] hover:text-red-500 transition-colors z-10">
+                    <Heart className="w-3.5 h-3.5" />
                   </button>
                 </div>
-              </div>
-            </Link>
-            
-          ))}
-        </div>
+                <div className="p-3 bg-white">
+                  <h4 className="text-[11px] font-medium text-[#A8928A] truncate">{item.name}</h4>
+                  <div className="flex items-center justify-between mt-1 pt-2 border-t border-[#F5EBE1]">
+                    <span className="text-xs font-bold text-[#3D251E] tracking-tight">Rs {item.price}/-</span>
+                    <button className="w-6 h-6 border border-[#EFE4D6] rounded flex items-center justify-center text-[#C87A53] hover:bg-[#FAF1E6] transition-colors">
+                      <ShoppingCart className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* --- STORIES: MEET THE ARTISANS PROFILE SHOWCASE --- */}
+      {/* === MEET THE ARTISANS === */}
       <section className="px-6 lg:px-16 py-8">
         <div className="bg-[#FFF2E5] rounded-3xl p-6 lg:p-10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
           <div className="flex flex-col sm:flex-row items-center gap-6 max-w-xl z-10">
@@ -243,12 +246,12 @@ export default function NepCraftHome() {
               <p className="text-[#654E47] text-xs leading-relaxed">
                 Every piece has a story. Our story put their heart, skill and tradition into creating the timeless crafts.
               </p>
-             <Link
-              href="/artisans"
-              className="mt-4 border border-[#C87A53] bg-white text-[#C87A53] hover:bg-[#FAF1E6] text-[11px] font-semibold px-4 py-1.5 rounded transition-colors inline-block"
-            >
-              View Artisans
-            </Link>
+              <Link
+                href="/artisans"
+                className="mt-4 border border-[#C87A53] bg-white text-[#C87A53] hover:bg-[#FAF1E6] text-[11px] font-semibold px-4 py-1.5 rounded transition-colors inline-block"
+              >
+                View Artisans
+              </Link>
             </div>
           </div>
 
@@ -262,10 +265,9 @@ export default function NepCraftHome() {
         </div>
       </section>
 
-      {/* --- TRUST BADGES & ETHICAL STATEMENT METRICS --- */}
+      {/* === TRUST BADGES === */}
       <section className="px-6 lg:px-16 py-8">
         <h3 className="text-base font-serif font-bold text-[#3D251E] mb-6">Why choose NepCraft?</h3>
-        
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { title: "Supports local artisans", desc: "We help to empower local communities.", icon: "👥" },
@@ -287,7 +289,6 @@ export default function NepCraftHome() {
       </section>
 
       <Footer />
-
     </div>
   );
 }
