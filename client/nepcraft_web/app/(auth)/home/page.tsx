@@ -232,18 +232,21 @@ export default function NepCraftHome() {
 
       {/* === MEET THE ARTISANS === */}
       <section className="px-6 lg:px-16 py-8">
-        <div className="bg-[#FFF2E5] rounded-3xl p-6 lg:p-10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+        {/* Added relative and h-auto md:h-56 to perfectly lock the container size */}
+        <div className="bg-[#FFF2E5] rounded-3xl p-6 lg:px-10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden min-h-[224px]">
+          
+          {/* Left Side: Text and Profile layout stays clean and unbothered */}
           <div className="flex flex-col sm:flex-row items-center gap-6 max-w-xl z-10">
             <div className="w-28 h-28 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-md">
               <img 
-                src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=300" 
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8cHJvZmlsZXxlbnwwfHwwfHx8MA%3D%3D" 
                 alt="Artisan Profile Close-up" 
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="text-center sm:text-left">
               <h3 className="text-xl font-serif font-bold text-[#3D251E] mb-2">Meet the artisans</h3>
-              <p className="text-[#654E47] text-xs leading-relaxed">
+              <p className="text-[#654E47] text-xs leading-relaxed max-w-sm">
                 Every piece has a story. Our story put their heart, skill and tradition into creating the timeless crafts.
               </p>
               <Link
@@ -255,13 +258,15 @@ export default function NepCraftHome() {
             </div>
           </div>
 
-          <div className="w-full md:w-auto z-10 flex justify-center">
+        
+          <div className="w-full md:w-auto md:absolute md:top-0 md:right-6 md:bottom-0 z-10 flex items-center justify-center">
             <img 
-              src="https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&q=80&w=400" 
+              src="/artist.png" 
               alt="Artisan production stage snippet" 
-              className="h-44 w-56 object-cover rounded-xl border border-white/50 shadow-md"
+              className="h-40 w-auto md:h-full max-h-full object-contain"
             />
           </div>
+
         </div>
       </section>
 

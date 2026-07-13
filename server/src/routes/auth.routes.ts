@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
-import { uploads } from "../middleware/upload.middleware"; // your multer setup
+import { uploads } from "../middleware/upload.middleware";
 import { authorizedMiddleware } from "../middleware/authorized.middlware";
 
 const router = Router();
@@ -10,15 +10,18 @@ const authController = new AuthController();
 router.post("/register", authController.register);
 router.post("/login", authController.login);
 
-router.post("/request-password-reset", authController.sendResetPasswordEmail);
-router.post("/reset-password/:token", authController.resetPassword);
+// Get logged-in user profile
+router.get(
+  "/profile",
+  authorizedMiddleware,
+  authController.getProfile
+);
 
-// Update profile with profile picture
-// 'profilePicture' is the field name sent from Flutter
+// Update profile
 router.post(
   "/update-profile",
-  uploads.profile.single("profilePicture"), // <-- use profile namespace
   authorizedMiddleware,
+  uploads.profile.single("profilePicture"),
   authController.updateProfile
 );
 

@@ -117,7 +117,8 @@ export class AuthController {
 
       // Handle profile image upload
       if (req.file) {
-        parsedData.data.imageUrl = `/public/profile_pictures/${req.file.filename}`;
+        parsedData.data.imageUrl =
+"/uploads/profile_pictures/" + req.file.filename;
       }
       
 

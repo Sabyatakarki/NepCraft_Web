@@ -34,21 +34,6 @@ const productStorage = multer.diskStorage({
   }
 });
 
-// //for orders
-// const orderStorage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     const uploadPath = path.join(__dirname, "../../public/orders");
-//     if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
-//     cb(null, uploadPath);
-//   },
-//   filename: (req, file, cb) => {
-//     const fileSuffix = uuidv4();
-//     const ext = path.extname(file.originalname);
-//     cb(null, `order-${fileSuffix}${ext}`);
-//   }
-// });
-
-
 
 const fileFilter = (
   req: Request,

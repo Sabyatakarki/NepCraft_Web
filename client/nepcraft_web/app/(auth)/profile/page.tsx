@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '../_components/header';
@@ -8,16 +8,16 @@ import Footer from '../_components/footer';
 import { User, MapPin, Mail, Phone, Pencil, Clock, ShoppingBag, Heart, LogOut, Loader2 } from 'lucide-react';
 
 type UserProfile = {
-  name: string;
+  fullName: string;
   location: string;
   email: string;
-  phone: string;
+  phoneNumber: string;
   gender: string;
+  imageUrl: string;
   memberSince: string;
   wishlistCount: number;
 };
 
-// Updated type mapping to align with your API schema structure
 type OrderItemResponse = {
   _id: string;
   totalAmount: number;
@@ -37,25 +37,60 @@ const API_BASE = 'http://localhost:5000/api/orders';
 
 export default function ProfilePage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Profile Form States
   const [profile, setProfile] = useState<UserProfile>({
-    name: 'Sabyata Karki',
-    location: 'Dhumbarahi, Kathmandu',
-    email: 'Sabyatakarki05@gmail.com',
-    phone: '977+ 9847378337',
-    gender: 'Female',
+    fullName: '',
+    location: 'Kathmandu, Nepal', // Fallback context matching default
+    email: '',
+    phoneNumber: '',
+    gender: 'Not Specified',
+    imageUrl: '',
     memberSince: 'May 2026',
-    wishlistCount: 10,
+    wishlistCount: 5,
   });
+
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Dynamic order states loaded from API
   const [orders, setOrders] = useState<OrderItemResponse[]>([]);
   const [loadingOrders, setLoadingOrders] = useState<boolean>(true);
 
   useEffect(() => {
+    fetchProfile();
     fetchOrderHistory();
   }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const res = await fetch("http://localhost:5000/api/auth/profile", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        // Fallback checks handle parameters expected by UI not provided explicitly by update schema
+        setProfile((prev) => ({
+          ...prev,
+          ...data.data,
+          fullName: data.data.fullName || prev.fullName,
+          email: data.data.email || prev.email,
+          phoneNumber: data.data.phoneNumber || prev.phoneNumber,
+          imageUrl: data.data.imageUrl || prev.imageUrl,
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
 
   const fetchOrderHistory = async () => {
     try {
@@ -71,7 +106,6 @@ export default function ProfilePage() {
       const data = await res.json();
 
       if (data.success) {
-        // Keeps only the latest 3 elements for the dashboard snapshot feed
         setOrders(data.data || []);
       }
     } catch (err) {
@@ -86,16 +120,75 @@ export default function ProfilePage() {
     setProfile(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSaveChanges = (e: React.FormEvent) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+
+    const file = e.target.files[0];
+    setSelectedImage(file);
+
+    // Preview image before uploading
+    setProfile((prev) => ({
+      ...prev,
+      imageUrl: URL.createObjectURL(file),
+    }));
+  };
+
+  const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Changes saved successfully!');
+
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+
+      const formData = new FormData();
+      formData.append("fullName", profile.fullName);
+      formData.append("email", profile.email);
+      formData.append("phoneNumber", profile.phoneNumber);
+
+      if (selectedImage) {
+        formData.append("profilePicture", selectedImage);
+      }
+
+      const res = await fetch("http://localhost:5000/api/auth/update-profile", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert("Profile updated successfully!");
+        setProfile((prev) => ({
+          ...prev,
+          ...data.data,
+        }));
+        setSelectedImage(null);
+      } else {
+        alert(data.message || "Failed to update profile.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('nepcraft_cart');
-    router.push('/login');
+    localStorage.removeItem("token");
+    localStorage.removeItem("nepcraft_cart");
+    router.push("/login");
   };
+
+  // Determine dynamic profile layout image address context
+  const profileImage = profile.imageUrl
+    ? profile.imageUrl.startsWith("blob:")
+      ? profile.imageUrl
+      : `http://localhost:5000${profile.imageUrl}`
+    : "/default-avatar.png";
 
   return (
     <div className="min-h-screen bg-[#FFFDFB] text-[#3D251E] font-sans antialiased flex flex-col">
@@ -113,17 +206,33 @@ export default function ProfilePage() {
             <div className="relative w-40 h-40 mb-4">
               <div className="w-full h-full rounded-full overflow-hidden border border-[#EFE4D6] bg-[#FAF1E6]">
                 <img 
-                  src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&q=80&w=400" 
-                  alt="User Avatar" 
+                  src={profileImage} 
+                  alt="Profile" 
                   className="w-full h-full object-cover"
                 />
               </div>
-              <button className="absolute bottom-1 right-2 bg-[#C87A53] hover:bg-[#B36640] text-white p-2 rounded-full border-2 border-white transition shadow-sm">
+              
+              {/* Trigger click on hidden input element */}
+              <button 
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-1 right-2 bg-[#C87A53] hover:bg-[#B36640] text-white p-2 rounded-full border-2 border-white transition shadow-sm cursor-pointer"
+              >
                 <Pencil size={12} className="fill-current" />
               </button>
+
+              {/* Hidden File Input UI Element */}
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                hidden
+                id="profilePicture"
+              />
             </div>
 
-            <h3 className="font-serif text-lg font-bold text-[#3D251E] mb-0.5">{profile.name}</h3>
+            <h3 className="font-serif text-lg font-bold text-[#3D251E] mb-0.5">{profile.fullName || 'User Profile'}</h3>
             <p className="text-[11px] text-[#8C7B75] mb-6">{profile.location}</p>
 
             {/* Sidebar Stats Grid */}
@@ -160,10 +269,11 @@ export default function ProfilePage() {
                     <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C87A53]" />
                     <input 
                       type="text" 
-                      name="name"
-                      value={profile.name}
+                      name="fullName"
+                      value={profile.fullName}
                       onChange={handleChange}
                       className="w-full border border-[#E8D9CA] rounded-md py-2.5 pl-10 pr-4 text-xs text-[#3D251E] bg-white focus:outline-none focus:border-[#C87A53] transition"
+                      required
                     />
                   </div>
                 </div>
@@ -194,6 +304,7 @@ export default function ProfilePage() {
                       value={profile.email}
                       onChange={handleChange}
                       className="w-full border border-[#E8D9CA] rounded-md py-2.5 pl-10 pr-4 text-xs text-[#3D251E] bg-white focus:outline-none focus:border-[#C87A53] transition"
+                      required
                     />
                   </div>
                 </div>
@@ -205,8 +316,8 @@ export default function ProfilePage() {
                     <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C87A53]" />
                     <input 
                       type="text" 
-                      name="phone"
-                      value={profile.phone}
+                      name="phoneNumber"
+                      value={profile.phoneNumber}
                       onChange={handleChange}
                       className="w-full border border-[#E8D9CA] rounded-md py-2.5 pl-10 pr-4 text-xs text-[#3D251E] bg-white focus:outline-none focus:border-[#C87A53] transition"
                     />
@@ -242,9 +353,17 @@ export default function ProfilePage() {
                 
                 <button 
                   type="submit" 
-                  className="bg-[#C87A53] hover:bg-[#B36640] text-white font-serif text-sm px-10 py-2.5 rounded-md transition shadow-xs"
+                  disabled={loading}
+                  className="bg-[#C87A53] hover:bg-[#B36640] text-white font-serif text-sm px-10 py-2.5 rounded-md transition shadow-xs flex items-center gap-2 min-w-[150px] justify-center disabled:opacity-70"
                 >
-                  Save changes
+                  {loading ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save changes'
+                  )}
                 </button>
               </div>
 
@@ -256,7 +375,7 @@ export default function ProfilePage() {
         <section className="mb-6">
           <div className="flex justify-between items-baseline mb-4">
             <h3 className="font-serif text-xl font-bold text-[#3D251E]">Recent Orders</h3>
-            <Link href="/orders" className="text-xs font-serif text-[#C87A53] hover:underline flex items-center gap-0.5">
+            <Link href="/order" className="text-xs font-serif text-[#C87A53] hover:underline flex items-center gap-0.5">
               View all
             </Link>
           </div>
@@ -272,9 +391,7 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {/* Slice to show only the most recent 3 items inside dashboard overview snippet */}
               {orders.slice(0, 3).map((order) => {
-                // Safely grab information from the first nested item wrapper block
                 const directItem = order.items?.[0];
                 return (
                   <div 
@@ -288,7 +405,6 @@ export default function ProfilePage() {
                         alt={directItem?.product?.name || "Handicraft Artwork"} 
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          // Fallback source placeholder 
                           (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&q=80&w=300';
                         }}
                       />
