@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Phone, Lock, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Phone, Lock, Eye, EyeOff, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
 import { FaFacebookF, FaGoogle } from 'react-icons/fa';
 
 export default function RegisterForm() {
@@ -26,16 +26,19 @@ export default function RegisterForm() {
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) {
+      setErrors((prev: any) => ({ ...prev, [e.target.name]: null }));
+    }
   };
 
   const validate = () => {
     let err: any = {};
 
-    if (!form.fullName.trim()) err.fullName = 'Required';
-    if (!form.email.trim()) err.email = 'Required';
-    if (!form.phoneNumber.trim()) err.phoneNumber = 'Required';
-    if (!form.password.trim()) err.password = 'Required';
-    if (!form.confirmPassword.trim()) err.confirmPassword = 'Required';
+    if (!form.fullName.trim()) err.fullName = 'Full name is required';
+    if (!form.email.trim()) err.email = 'Email address is required';
+    if (!form.phoneNumber.trim()) err.phoneNumber = 'Phone number is required';
+    if (!form.password.trim()) err.password = 'Password is required';
+    if (!form.confirmPassword.trim()) err.confirmPassword = 'Please confirm your password';
 
     if (
       form.password &&
@@ -74,7 +77,7 @@ export default function RegisterForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setErrors({ api: data.message || 'Something went wrong' });
+        setErrors({ api: data.message || 'Something went wrong. Please try again.' });
         setLoading(false);
         return;
       }
@@ -85,7 +88,7 @@ export default function RegisterForm() {
         router.push('/login');
       }, 2000);
     } catch (error) {
-      setErrors({ api: 'Server not responding' });
+      setErrors({ api: 'Unable to connect to the server. Please check your connection.' });
     }
 
     setLoading(false);
@@ -95,171 +98,207 @@ export default function RegisterForm() {
     alert(`${provider} login coming soon 🚀`);
   };
 
-  const inputClass =
-    'w-full rounded-xl border border-gray-200 bg-gray-50/40 px-4 py-3 pl-11 text-sm text-gray-800 placeholder-gray-400 outline-none transition-all duration-200 hover:bg-white hover:border-gray-300 focus:bg-white focus:border-[#C87A53] focus:ring-4 focus:ring-[#C87A53]/10';
+  const inputClass = (hasError: boolean) =>
+    `w-full rounded-xl border ${
+      hasError ? 'border-rose-400 bg-rose-50/20' : 'border-[#E8D9CA] bg-white/80'
+    } px-4 py-3 pl-11 text-sm text-[#3D251E] placeholder:text-[#A8928A] outline-none transition-all duration-200 hover:border-[#C87A53]/50 focus:bg-white focus:border-[#C87A53] focus:ring-4 focus:ring-[#C87A53]/15 shadow-2xs`;
 
   return (
-    <div className="w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col justify-center">
+    <div className="w-full max-w-md mx-auto max-h-[90vh] overflow-y-auto px-1 py-2 flex flex-col justify-center scrollbar-thin">
 
-      <div className="mb-5">
-        <h2 className="text-3xl font-bold tracking-tight text-[#C87A53]">
+      {/* HEADER SECTION */}
+      <div className="mb-6">
+  
+        <h2 className="font-serif text-3xl font-bold tracking-tight text-[#C87A53]">
           Create Account
         </h2>
-
-        <p className="text-sm text-gray-500 mt-2">
-          Join NepCraft and explore handcrafted products made with love in Nepal.
+        <p className="text-xs text-[#8C7B75] mt-1.5 leading-relaxed">
+          Join NepCraft to discover authentic handmade treasures and support local artisans.
         </p>
       </div>
 
+      {/* ALERTS */}
       {errors.api && (
-        <div className="mb-3 text-sm text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded-lg">
-          {errors.api}
+        <div className="mb-4 flex items-center gap-2.5 text-xs text-rose-700 bg-rose-50 border border-rose-200/80 px-4 py-3 rounded-xl animate-in fade-in slide-in-from-top-1">
+          <AlertCircle size={16} className="shrink-0 text-rose-500" />
+          <span>{errors.api}</span>
         </div>
       )}
 
       {success && (
-        <div className="mb-3 text-sm text-green-600 bg-green-50 border border-green-200 px-3 py-2 rounded-lg">
-          Account created! Redirecting...
+        <div className="mb-4 flex items-center gap-2.5 text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-4 py-3 rounded-xl animate-in fade-in slide-in-from-top-1">
+          <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+          <span>Account created successfully! Redirecting to login...</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {/* FORM */}
+      <form onSubmit={handleSubmit} className="space-y-3.5">
 
         {/* Full Name */}
-        <div className="relative">
-          <User className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
-          <input
-            name="fullName"
-            value={form.fullName}
-            onChange={handleChange}
-            placeholder="Full Name"
-            disabled={success}
-            className={inputClass}
-          />
+        <div>
+          <div className="relative">
+            <User className="absolute left-3.5 top-3.5 text-[#A8928A]" size={18} />
+            <input
+              name="fullName"
+              value={form.fullName}
+              onChange={handleChange}
+              placeholder="Full Name"
+              disabled={success}
+              className={inputClass(!!errors.fullName)}
+            />
+          </div>
           {errors.fullName && (
-            <p className="text-xs text-red-500 mt-1">{errors.fullName}</p>
+            <p className="text-[11px] font-medium text-rose-500 mt-1 pl-1">{errors.fullName}</p>
           )}
         </div>
 
         {/* Email */}
-        <div className="relative">
-          <Mail className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
-          <input
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="Email"
-            disabled={success}
-            className={inputClass}
-          />
+        <div>
+          <div className="relative">
+            <Mail className="absolute left-3.5 top-3.5 text-[#A8928A]" size={18} />
+            <input
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Email Address"
+              disabled={success}
+              className={inputClass(!!errors.email)}
+            />
+          </div>
           {errors.email && (
-            <p className="text-xs text-red-500 mt-1">{errors.email}</p>
+            <p className="text-[11px] font-medium text-rose-500 mt-1 pl-1">{errors.email}</p>
           )}
         </div>
 
         {/* Phone Number */}
-        <div className="relative">
-          <Phone className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
-          <input
-            name="phoneNumber"
-            value={form.phoneNumber}
-            onChange={handleChange}
-            placeholder="Phone Number"
-            disabled={success}
-            className={inputClass}
-          />
+        <div>
+          <div className="relative">
+            <Phone className="absolute left-3.5 top-3.5 text-[#A8928A]" size={18} />
+            <input
+              name="phoneNumber"
+              value={form.phoneNumber}
+              onChange={handleChange}
+              placeholder="Phone Number"
+              disabled={success}
+              className={inputClass(!!errors.phoneNumber)}
+            />
+          </div>
           {errors.phoneNumber && (
-            <p className="text-xs text-red-500 mt-1">{errors.phoneNumber}</p>
+            <p className="text-[11px] font-medium text-rose-500 mt-1 pl-1">{errors.phoneNumber}</p>
           )}
         </div>
 
         {/* Password */}
-        <div className="relative">
-          <Lock className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
-          <input
-            type={showPassword ? 'text' : 'password'}
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="Password"
-            disabled={success}
-            className={inputClass}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3.5 top-3.5 text-gray-400"
-          >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
+        <div>
+          <div className="relative">
+            <Lock className="absolute left-3.5 top-3.5 text-[#A8928A]" size={18} />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Password"
+              disabled={success}
+              className={inputClass(!!errors.password)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 top-3.5 text-[#A8928A] hover:text-[#3D251E] transition-colors"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
           {errors.password && (
-            <p className="text-xs text-red-500 mt-1">{errors.password}</p>
+            <p className="text-[11px] font-medium text-rose-500 mt-1 pl-1">{errors.password}</p>
           )}
         </div>
 
         {/* Confirm Password */}
-        <div className="relative">
-          <Lock className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
-          <input
-            type={showConfirmPassword ? 'text' : 'password'}
-            name="confirmPassword"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            placeholder="Confirm Password"
-            disabled={success}
-            className={inputClass}
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3.5 top-3.5 text-gray-400"
-          >
-            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
+        <div>
+          <div className="relative">
+            <Lock className="absolute left-3.5 top-3.5 text-[#A8928A]" size={18} />
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              name="confirmPassword"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirm Password"
+              disabled={success}
+              className={inputClass(!!errors.confirmPassword)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3.5 top-3.5 text-[#A8928A] hover:text-[#3D251E] transition-colors"
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
           {errors.confirmPassword && (
-            <p className="text-xs text-red-500 mt-1">
+            <p className="text-[11px] font-medium text-rose-500 mt-1 pl-1">
               {errors.confirmPassword}
             </p>
           )}
         </div>
 
-        {/* Button */}
+        {/* SUBMIT BUTTON */}
         <button
           type="submit"
           disabled={success || loading}
-          className="w-full bg-[#C87A53] hover:bg-[#B36842] text-white py-3.5 rounded-xl font-semibold transition active:scale-[0.98] disabled:opacity-60"
+          className="w-full mt-2 bg-[#C87A53] hover:bg-[#B36842] text-white py-3 rounded-xl font-medium text-sm transition-all duration-200 active:scale-[0.98] shadow-md shadow-[#C87A53]/20 disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
         >
-          {loading ? 'Creating...' : success ? 'Redirecting...' : 'Create Account'}
+          {loading ? (
+            <>
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span>Creating Account...</span>
+            </>
+          ) : success ? (
+            'Redirecting...'
+          ) : (
+            'Create Account'
+          )}
         </button>
 
-        {/* Login */}
-        <p className="text-center text-xs text-gray-500">
+        {/* LOGIN LINK */}
+        <p className="text-center text-xs text-[#8C7B75] pt-1">
           Already have an account?{' '}
-          <Link href="/login" className="text-[#C87A53] font-semibold">
-            Login
+          <Link href="/login" className="text-[#C87A53] font-semibold hover:underline">
+            Log in
           </Link>
         </p>
 
-        {/* Social */}
+        {/* SOCIAL DIVIDER */}
+        <div className="relative my-4 flex items-center justify-center">
+          <div className="w-full border-t border-[#E8D9CA]" />
+          <span className="absolute bg-[#FFFDFB] px-3 text-[11px] text-[#A8928A] font-medium uppercase tracking-wider">
+            or sign up with
+          </span>
+        </div>
+
+        {/* SOCIAL BUTTONS */}
         <div className="flex gap-3">
           <button
             type="button"
             onClick={() => handleSocialLogin('Facebook')}
-            className="flex-1 flex items-center justify-center gap-2 border rounded-xl py-2 hover:bg-gray-50"
+            className="flex-1 flex items-center justify-center gap-2 border border-[#E8D9CA] bg-white rounded-xl py-2.5 hover:bg-[#FAF7F2] hover:border-[#C87A53]/40 transition-colors shadow-2xs"
           >
-            <FaFacebookF className="text-blue-600" />
-            <span className="text-xs">Facebook</span>
+            <FaFacebookF className="text-[#1877F2] text-sm" />
+            <span className="text-xs font-medium text-[#3D251E]">Facebook</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleSocialLogin('Google')}
-            className="flex-1 flex items-center justify-center gap-2 border rounded-xl py-2 hover:bg-gray-50"
+            className="flex-1 flex items-center justify-center gap-2 border border-[#E8D9CA] bg-white rounded-xl py-2.5 hover:bg-[#FAF7F2] hover:border-[#C87A53]/40 transition-colors shadow-2xs"
           >
-            <FaGoogle className="text-red-500" />
-            <span className="text-xs">Google</span>
+            <FaGoogle className="text-[#EA4335] text-sm" />
+            <span className="text-xs font-medium text-[#3D251E]">Google</span>
           </button>
         </div>
+
       </form>
     </div>
   );

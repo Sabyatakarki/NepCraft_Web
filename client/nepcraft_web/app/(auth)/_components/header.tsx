@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, ShoppingCart, Heart, User, Menu } from "lucide-react";
+import { 
+  Search, ShoppingCart, Heart, User, Menu, ChevronDown, 
+  Sparkles, Palette, Layers, Flame, Package, ArrowRight, X 
+} from "lucide-react";
 
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+
   const pathname = usePathname();
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -20,25 +24,27 @@ export default function Header() {
     if (token) setIsLoggedIn(true);
   }, []);
 
-  // Simplified dual-fetch suggestions engine (Triggers on 1 letter)
+  // Dual-fetch suggestions engine with debounce & loading indicator
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSuggestions([]);
+      setIsLoadingSuggestions(false);
       return;
     }
 
-    const fetchCombinedSuggestions = async () => {
-      try {
-        const encodedQuery = encodeURIComponent(searchQuery);
+    setIsLoadingSuggestions(true);
 
-        // Fetch products and artisans at the same time
+    const timer = setTimeout(async () => {
+      try {
+        const encodedQuery = encodeURIComponent(searchQuery.trim());
+
         const [productsRes, artisansRes] = await Promise.all([
           fetch(`http://localhost:5000/api/products?search=${encodedQuery}`),
-          fetch(`http://localhost:5000/api/artisans?search=${encodedQuery}`).catch(() => null) // catch block avoids crashing if artisans route doesn't exist yet
+          fetch(`http://localhost:5000/api/artisans?search=${encodedQuery}`).catch(() => null)
         ]);
 
-        let productItems = [];
-        let artisanItems = [];
+        let productItems: any[] = [];
+        let artisanItems: any[] = [];
 
         if (productsRes && productsRes.ok) {
           const pData = await productsRes.json();
@@ -52,18 +58,19 @@ export default function Header() {
           artisanItems = Array.isArray(aList) ? aList.map((a: any) => ({ ...a, type: 'Artisan' })) : [];
         }
 
-        // Merge both arrays together into a single list
         const combined = [...productItems, ...artisanItems];
-        setSuggestions(combined.slice(0, 6)); // Limit to top 6 total hits
+        setSuggestions(combined.slice(0, 6));
       } catch (err) {
         console.error("Combined suggestions fetch error:", err);
+      } finally {
+        setIsLoadingSuggestions(false);
       }
-    };
+    }, 200);
 
-    fetchCombinedSuggestions();
+    return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Close dropdown when clicking outside
+  // Close dropdown on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -78,121 +85,247 @@ export default function Header() {
     e.preventDefault();
     if (!searchQuery.trim()) return;
     setShowDropdown(false);
-    
-    // Redirects appropriately based on what they are looking for
     router.push(`/Shop?search=${encodeURIComponent(searchQuery.trim())}`);
   };
 
-  return (
-    <>
-      {/* TOP BAR */}
-      <header className="border-b border-[#EFE4D6] bg-white px-6 lg:px-16 py-4">
-        <div className="grid grid-cols-3 items-center">
+  const categoriesList = [
+    { name: "Pottery & Ceramics", href: "/Shop?category=Pottery", icon: Flame },
+    { name: "Thangka Paintings", href: "/Shop?category=Thangka", icon: Palette },
+    { name: "Craft Accessories", href: "/Shop?category=Accessories", icon: Sparkles },
+    { name: "Statues & Metalwork", href: "/Shop?category=Statues", icon: Layers },
+    { name: "Souvenirs & Gifts", href: "/Shop?category=Souvenirs", icon: Package },
+  ];
 
-          {/* Logo */}
-          <div className="flex items-center gap-2 justify-start">
-            <img src="/vase.png" alt="NepCraft Logo" className="h-12 w-auto object-contain" />
-            <div>
-              <h1 className="font-serif text-[28px] leading-none text-[#5C4033]">NepCraft</h1>
-              <p className="text-[10px] text-[#8C7B75]">Handmade with hearts</p>
+  return (
+    <header className="sticky top-0 z-50 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#F2E6DA] text-[#3D251E] transition-all">
+      
+      {/* TOP HEADER SECTION */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-3">
+        <div className="grid grid-cols-12 items-center gap-4">
+
+          {/* 1. LEFT CORNER: BRAND LOGO */}
+          <div className="col-span-6 md:col-span-3 flex items-center justify-start">
+            <Link href="/home" className="group flex items-center gap-3 transition-transform duration-200 active:scale-98">
+              <div className="w-10 h-10 rounded-xl bg-[#FFF2E5] border border-[#E8D9CA] p-1.5 flex items-center justify-center shadow-2xs group-hover:bg-[#FAF1E6] transition-colors">
+                <img 
+                  src="/vase.png" 
+                  alt="NepCraft Logo" 
+                  className="h-full w-auto object-contain group-hover:scale-105 transition-transform" 
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+              </div>
+              <div className="text-left">
+                <h1 className="font-serif text-2xl font-bold tracking-tight text-[#3D251E] group-hover:text-[#C87A53] transition-colors leading-tight">
+                  NepCraft
+                </h1>
+                <p className="text-[10px] tracking-widest uppercase font-medium text-[#8C7B75]">
+                  Handmade with Heart
+                </p>
+              </div>
+            </Link>
+          </div>
+
+          {/* 2. CENTER: COMBINED SEARCH BAR */}
+          <div className="col-span-12 md:col-span-6 order-last md:order-none" ref={dropdownRef}>
+            <div className="relative w-full max-w-lg mx-auto">
+              <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+                <input
+                  type="text"
+                  placeholder="Search craft items, artisans, or origins..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  onFocus={() => setShowDropdown(true)}
+                  className="w-full bg-white border border-[#E8D9CA] hover:border-[#C87A53]/50 focus:border-[#C87A53] rounded-xl py-2 pl-4 pr-11 text-xs text-[#3D251E] placeholder:text-[#A8928A] shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#C87A53]/15 transition-all"
+                />
+
+                {searchQuery ? (
+                  <button 
+                    type="button" 
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-10 text-[#A8928A] hover:text-[#3D251E] transition-colors p-1"
+                  >
+                    <X size={14} />
+                  </button>
+                ) : null}
+
+                <button 
+                  type="submit" 
+                  aria-label="Submit Search"
+                  className="absolute right-2 text-white bg-[#C87A53] hover:bg-[#B36640] p-1.5 rounded-lg transition-colors shadow-2xs cursor-pointer active:scale-95"
+                >
+                  <Search size={14} />
+                </button>
+              </form>
+
+              {/* SEARCH SUGGESTIONS OVERLAY */}
+              {showDropdown && searchQuery.trim().length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-[#F2E6DA] rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  {isLoadingSuggestions ? (
+                    <div className="p-4 text-center text-xs text-[#8C7B75] flex items-center justify-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#C87A53] animate-ping" />
+                      Searching marketplace...
+                    </div>
+                  ) : suggestions.length > 0 ? (
+                    <div className="py-1.5 divide-y divide-[#F5EBE1]">
+                      <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-[#A8928A] tracking-wider">
+                        Top Results
+                      </div>
+                      <div className="py-1">
+                        {suggestions.map((item: any) => (
+                          <div
+                            key={item._id}
+                            onClick={() => {
+                              setSearchQuery(item.name);
+                              setShowDropdown(false);
+                              const destination = item.type === 'Artisan' ? '/artisans' : '/Shop';
+                              router.push(`${destination}?search=${encodeURIComponent(item.name)}`);
+                            }}
+                            className="px-4 py-2.5 hover:bg-[#FFF2E5] cursor-pointer text-xs text-[#3D251E] flex items-center justify-between transition-colors group"
+                          >
+                            <span className="font-medium group-hover:text-[#C87A53] transition-colors truncate pr-2">
+                              {item.name}
+                            </span>
+                            <span className={`text-[9px] px-2 py-0.5 rounded-md font-semibold tracking-wide uppercase shrink-0 border ${
+                              item.type === 'Artisan' 
+                                ? 'bg-amber-50 text-amber-800 border-amber-200' 
+                                : 'bg-[#FAF1E6] text-[#8C7B75] border-[#E8D9CA]'
+                            }`}>
+                              {item.type}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center text-xs text-[#8C7B75]">
+                      No crafts or artisans found matching "{searchQuery}"
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Combined Search Box */}
-          <div className="flex justify-center relative" ref={dropdownRef}>
-            <form onSubmit={handleSearchSubmit} className="relative w-full max-w-md z-50">
-              <input
-                type="text"
-                placeholder="Search products, artisans..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setShowDropdown(true);
-                }}
-                onFocus={() => setShowDropdown(true)}
-                className="w-full border border-[#E8D9CA] rounded-md py-2 pl-4 pr-10 text-sm focus:outline-none focus:border-[#C87A53] bg-white"
-              />
-              <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-[#C87A53]">
-                <Search size={18} />
-              </button>
-            </form>
-
-            {/* Suggestions Overlay displaying custom Type tags */}
-            {showDropdown && searchQuery.trim().length > 0 && suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-[#EFE4D6] rounded-md shadow-xl max-w-md mx-auto overflow-hidden z-50">
-                <div className="py-1">
-                  {suggestions.map((item: any) => (
-                    <div
-                      key={item._id}
-                      onClick={() => {
-                        setSearchQuery(item.name);
-                        setShowDropdown(false);
-                        // Redirect to /artisans page if it's an artisan, otherwise go to /Shop
-                        const destination = item.type === 'Artisan' ? '/artisans' : '/Shop';
-                        router.push(`${destination}?search=${encodeURIComponent(item.name)}`);
-                      }}
-                      className="px-4 py-2 hover:bg-[#FFF2E5] cursor-pointer text-xs text-[#3D251E] flex justify-between items-center"
-                    >
-                      <span className="font-medium truncate">{item.name}</span>
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono uppercase tracking-wider ${
-                        item.type === 'Artisan' 
-                          ? 'bg-[#E3F2FD] text-blue-700' 
-                          : 'bg-[#FAF1E6] text-[#8C7B75]'
-                      }`}>
-                        {item.type}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Right Links Section */}
-          <div className="flex items-center justify-end gap-6 text-sm">
-            <Link href="/cart" className={`flex items-center gap-2 transition ${pathname === "/cart" ? "text-[#C87A53] font-bold" : "hover:text-[#C87A53]"}`}>
-              <ShoppingCart size={18} />
-              <span>Cart</span>
+          {/* 3. RIGHT CORNER: USER ACTIONS & CART */}
+          <div className="col-span-6 md:col-span-3 flex items-center justify-end gap-1 sm:gap-2">
+            
+            {/* Cart Link */}
+            <Link 
+              href="/cart" 
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                pathname === "/cart" 
+                  ? "bg-[#FFF2E5] text-[#C87A53] font-bold" 
+                  : "text-[#6E5D57] hover:bg-white hover:text-[#3D251E]"
+              }`}
+            >
+              <ShoppingCart size={18} className={pathname === "/cart" ? "text-[#C87A53]" : "text-[#8C7B75]"} />
+              <span className="hidden sm:inline">Cart</span>
             </Link>
 
-            <Link href="/wishlist" className={`flex items-center gap-2 transition ${pathname === "/wishlist" ? "text-[#C87A53] font-bold" : "hover:text-[#C87A53]"}`}>
-              <Heart size={18} />
-              <span>Wishlist</span>
+            {/* Wishlist Link */}
+            <Link 
+              href="/wishlist" 
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                pathname === "/wishlist" 
+                  ? "bg-[#FFF2E5] text-[#C87A53] font-bold" 
+                  : "text-[#6E5D57] hover:bg-white hover:text-[#3D251E]"
+              }`}
+            >
+              <Heart size={18} className={pathname === "/wishlist" ? "text-[#C87A53]" : "text-[#8C7B75]"} />
+              <span className="hidden sm:inline">Wishlist</span>
             </Link>
 
-            <Link href={isLoggedIn ? "/profile" : "/login"} className={`flex items-center gap-2 transition ${pathname === "/profile" || pathname === "/login" ? "text-[#C87A53] font-bold" : "hover:text-[#C87A53]"}`}>
-              <User size={18} />
-              <span>{isLoggedIn ? "Profile" : "Login"}</span>
+            {/* Profile / Auth Link */}
+            <Link 
+              href={isLoggedIn ? "/profile" : "/login"} 
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all border ${
+                pathname === "/profile" || pathname === "/login"
+                  ? "bg-[#C87A53] text-white border-[#C87A53] font-semibold"
+                  : "bg-white text-[#3D251E] border-[#E8D9CA] hover:border-[#C87A53]/50"
+              }`}
+            >
+              <User size={16} />
+              <span>{isLoggedIn ? "Profile" : "Sign In"}</span>
             </Link>
+
           </div>
 
         </div>
-      </header>
-
-      {/* NAVIGATION BAR */}
-      <div className="px-6 lg:px-16 py-2 flex justify-between items-center border-b border-[#F5EBE1] text-sm font-medium relative">
-        <div className="relative group">
-          <button className="flex items-center gap-2 border border-[#EFE4D6] px-3 py-1.5 rounded bg-white text-xs text-[#654E47] hover:bg-[#FAF4ED] transition-colors">
-            <Menu className="w-3.5 h-3.5" />
-            Categories
-          </button>
-          <div className="absolute left-0 top-full mt-1 w-48 bg-white border border-[#EFE4D6] rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-            <Link href="/Shop" className="block px-4 py-3 text-sm hover:bg-[#FFF2E5]">Pottery</Link>
-            <Link href="/Shop" className="block px-4 py-3 text-sm hover:bg-[#FFF2E5]">Thangka</Link>
-            <Link href="/Shop" className="block px-4 py-3 text-sm hover:bg-[#FFF2E5]">Accessories</Link>
-            <Link href="/Shop" className="block px-4 py-3 text-sm hover:bg-[#FFF2E5]">Idol Statues</Link>
-            <Link href="/Shop" className="block px-4 py-3 text-sm hover:bg-[#FFF2E5]">Souvenirs</Link>
-          </div>
-        </div>
-
-        <nav className="absolute left-1/2 -translate-x-1/2 flex gap-12 text-[#654E47]">
-          <Link href="/home" className={`pb-0.5 transition-colors ${pathname === "/home" ? "text-[#C87A53] font-bold border-b border-[#C87A53]" : "hover:text-[#C87A53]"}`}>Home</Link>
-          <Link href="/Shop" className={`pb-0.5 transition-colors ${pathname === "/Shop" ? "text-[#C87A53] font-bold border-b border-[#C87A53]" : "hover:text-[#C87A53]"}`}>Shop</Link>
-          <Link href="/artisans" className={`pb-0.5 transition-colors ${pathname === "/artisans" ? "text-[#C87A53] font-bold border-b border-[#C87A53]" : "hover:text-[#C87A53]"}`}>Artisans</Link>
-          <Link href="/aboutus" className={`pb-0.5 transition-colors ${pathname === "/aboutus" ? "text-[#C87A53] font-bold border-b border-[#C87A53]" : "hover:text-[#C87A53]"}`}>About Us</Link>
-        </nav>
-        <div className="w-24"></div>
       </div>
-    </>
+
+      {/* SECONDARY NAVIGATION BAR */}
+      <div className="border-t border-[#F2E6DA] bg-white/60">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between relative text-xs">
+          
+          {/* LEFT SIDE CATEGORIES DROPDOWN MENU */}
+          <div className="relative group hidden sm:block">
+            <button className="flex items-center gap-2 border border-[#E8D9CA] px-3.5 py-1.5 rounded-lg bg-white text-[#3D251E] font-medium hover:bg-[#FFF2E5] hover:border-[#C87A53]/40 transition-all cursor-pointer shadow-2xs">
+              <Menu className="w-3.5 h-3.5 text-[#C87A53]" />
+              <span>Categories</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#8C7B75] group-hover:rotate-180 transition-transform duration-200" />
+            </button>
+
+            {/* Dropdown Menu Panel */}
+            <div className="absolute left-0 top-full mt-2 w-56 bg-white border border-[#F2E6DA] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 p-1.5">
+              {categoriesList.map((cat) => {
+                const CategoryIcon = cat.icon;
+                return (
+                  <Link 
+                    key={cat.name} 
+                    href={cat.href} 
+                    className="flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium text-[#6E5D57] hover:bg-[#FFF2E5] hover:text-[#C87A53] transition-colors"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <CategoryIcon size={14} className="text-[#C87A53]" />
+                      {cat.name}
+                    </span>
+                    <ArrowRight size={12} className="opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-[#C87A53]" />
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* CENTER NAVIGATION LINKS */}
+          <nav className="flex items-center gap-8 font-medium text-[#6E5D57] mx-auto lg:mx-0">
+            {[
+              { name: "Home", href: "/home" },
+              { name: "Shop", href: "/Shop" },
+              { name: "Artisans", href: "/artisans" },
+              { name: "About Us", href: "/aboutus" },
+            ].map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`relative py-1 transition-colors hover:text-[#C87A53] ${
+                    isActive ? "text-[#C87A53] font-bold" : ""
+                  }`}
+                >
+                  {link.name}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#C87A53] rounded-full animate-in fade-in zoom-in duration-200" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Quick Notice / Extra Tagline */}
+          <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-[#8C7B75]">
+            <Sparkles size={13} className="text-[#C87A53]" />
+            <span>Authentic Nepali Heritage</span>
+          </div>
+
+        </div>
+      </div>
+
+    </header>
   );
 }
