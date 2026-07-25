@@ -2,7 +2,8 @@ import express from "express";
 import {
   getProducts,
   createProduct,
-  getProductById
+  getProductById,
+  deleteProduct
 } from "../controllers/Product.controller";
 
 import { uploads } from "../middleware/upload.middleware";
@@ -19,5 +20,7 @@ router.post(
   createProduct
 );
 
+// Delete Product
+router.delete("/:id", deleteProduct);
 
 export default router;

@@ -76,4 +76,41 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
   } catch (error) {
     next(error);
   }
+
+  
+};
+
+// DELETE PRODUCT
+export const deleteProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return next(new HttpError(404, "Product not found"));
+    }
+
+    // Delete image from uploads folder
+    const imagePath = path.join(
+      __dirname,
+      "../../public/uploads/products",
+      product.image
+    );
+
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath);
+    }
+
+    await Product.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Product deleted successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
 };
