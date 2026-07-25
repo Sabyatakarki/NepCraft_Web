@@ -17,3 +17,6 @@ export const updateArtisan = async (id: string, data: any) => {
     new: true,
   });
 };
+export const deleteArtisan = async (id: string) => {
+  return await Artisan.findByIdAndDelete(id);
+};

@@ -9,10 +9,12 @@ export const createArtisan = async (req: Request, res: Response) => {
       success: true,
       artisan,
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error(error);
+
     res.status(500).json({
       success: false,
-      message: "Failed to create artisan",
+      message: error.message,
     });
   }
 };
@@ -28,10 +30,10 @@ export const getAllArtisans = async (
       success: true,
       artisans,
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: "Failed to fetch artisans",
+      message: error.message,
     });
   }
 };
@@ -43,14 +45,21 @@ export const getArtisanById = async (
   try {
     const artisan = await ArtisanService.getArtisanById(req.params.id);
 
+    if (!artisan) {
+      return res.status(404).json({
+        success: false,
+        message: "Artisan not found",
+      });
+    }
+
     res.status(200).json({
       success: true,
       artisan,
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: "Artisan not found",
+      message: error.message,
     });
   }
 };
@@ -65,14 +74,47 @@ export const updateArtisan = async (
       req.body
     );
 
+    if (!artisan) {
+      return res.status(404).json({
+        success: false,
+        message: "Artisan not found",
+      });
+    }
+
     res.status(200).json({
       success: true,
       artisan,
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: "Update failed",
+      message: error.message,
+    });
+  }
+};
+
+export const deleteArtisan = async (
+  req: Request<{ id: string }>,
+  res: Response
+) => {
+  try {
+    const artisan = await ArtisanService.deleteArtisan(req.params.id);
+
+    if (!artisan) {
+      return res.status(404).json({
+        success: false,
+        message: "Artisan not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Artisan deleted successfully",
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
     });
   }
 };

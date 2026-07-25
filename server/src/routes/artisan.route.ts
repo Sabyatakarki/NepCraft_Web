@@ -11,5 +11,6 @@ router.get("/:id", ArtisanController.getArtisanById);
 
 router.put("/:id", ArtisanController.updateArtisan);
 
+router.delete("/:id", ArtisanController.deleteArtisan);
 
 export default router;
