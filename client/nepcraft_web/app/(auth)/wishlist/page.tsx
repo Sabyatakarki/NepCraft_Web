@@ -97,7 +97,7 @@ export default function WishlistPage() {
   return (
     <div className="min-h-screen bg-[#FAF6F0] text-[#3D251E] font-sans antialiased flex flex-col">
       
-      {/* Header Component */}
+     
       <Header />
 
       
@@ -141,12 +141,11 @@ export default function WishlistPage() {
               {wishlistItems.map((item) => (
                 <div key={item._id} className="bg-white border border-[#EFE4D6] rounded-2xl p-3 flex flex-col justify-between group hover:shadow-md transition-all duration-300 relative">
                   
-                  {/* Category Tag */}
+                 
                   <span className="absolute top-5 left-5 bg-white/90 backdrop-blur-xs text-[9px] font-bold tracking-wider px-2 py-0.5 rounded-full text-[#5C4033] border border-[#EFE4D6] uppercase z-10">
                     {item.category || 'Handcrafted'}
                   </span>
 
-                  {/* Image Container */}
                   <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-[#FAF6F0] mb-3 relative border border-[#F5EBE1]">
                     <img
                       src={item.image.startsWith('http') ? item.image : `${IMAGE_BASE}/${item.image}`}
@@ -155,7 +154,7 @@ export default function WishlistPage() {
                     />
                   </div>
 
-                  {/* Product Details */}
+                  
                   <div className="flex flex-col flex-grow justify-between">
                     <div>
                       <h3 className="font-serif text-xs font-bold text-[#3D251E] tracking-tight line-clamp-1 group-hover:text-[#C87A53] transition-colors">
@@ -166,7 +165,7 @@ export default function WishlistPage() {
                       </p>
                     </div>
 
-                    {/* Actions */}
+                  
                     <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[#F5EBE1]">
                       <Link 
                         href="/cart" 
@@ -191,7 +190,7 @@ export default function WishlistPage() {
           )}
         </section>
 
-        {/* SECTION 2: FOLLOWED ARTISANS */}
+      
         <section className="mb-8">
           <div className="flex items-center justify-between mb-6 border-b border-[#EFE4D6] pb-4">
             <div className="flex items-center gap-3">
@@ -239,13 +238,13 @@ export default function WishlistPage() {
               {favoriteArtisans.map((artisan) => (
                 <div key={artisan._id} className="bg-white border border-[#EFE4D6] rounded-2xl p-5 flex flex-col justify-between relative group hover:shadow-md transition-all duration-300">
                   
-                  {/* Experience Badge */}
+                  
                   <div className="absolute top-4 right-4 bg-[#FFF2E5] border border-[#E8D9CA] rounded-full px-2.5 py-0.5 flex items-center gap-1 text-[10px] text-[#C87A53] font-bold">
                     <Award size={11} />
                     <span>{artisan.experience} yrs</span>
                   </div>
 
-                  {/* Profile Header */}
+                
                   <div className="flex flex-col items-center text-center pt-2">
                     <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-[#EFE4D6] bg-[#FAF1E6] mb-3 shadow-xs">
                       <img 
