@@ -192,7 +192,7 @@ export default function ArtisansPage() {
         </p>
       </div>
 
-      {/* === ARTISANS GRID LAYOUT === */}
+     
       <section className="px-6 lg:px-16 pb-16 pt-4 flex-grow">
         {loading ? (
           <div className="flex justify-center items-center py-24 text-sm font-medium text-[#8C7B75]">

@@ -158,7 +158,7 @@ export default function ArtisanProfilePage() {
   return (
     <div className="min-h-screen bg-[#FAF6F0] text-[#3D251E] font-sans antialiased flex flex-col relative">
       
-      {/* Toast Notification */}
+      
       {toast.show && typeof window !== 'undefined' && createPortal(
         <div className="fixed top-6 right-6 z-50 flex items-center gap-3 bg-[#3D251E] text-[#FFFDFB] px-5 py-3.5 rounded-2xl shadow-2xl border border-[#5C4033] max-w-sm transition-all duration-300 animate-in fade-in slide-in-from-top-4">
           <Heart size={16} className="text-[#C87A53] fill-current shrink-0" />
