@@ -36,20 +36,26 @@ export const handleLogin = async (formData: any) => {
       };
     }
 
+    // Store token in cookie
     await setAuthToken(result.token);
+
+    // Store user data in cookie
     await setUserData(result.data);
 
-    
-    if (result.data.role === "admin") {
-      redirect("/admin");
-    } else {
-      redirect("/dashboard");
-    }
+    return {
+      success: true,
+      message: "Login successful",
+      token: result.token,
+      user: result.data
+    };
+
   } catch (err: any) {
-    return { success: false, message: err.message || "Login failed" };
+    return {
+      success: false,
+      message: err.message || "Login failed",
+    };
   }
 };
-
 export const handleWhoAmI = async (formData: any) => {
   try {
     const result = await whoami(formData);

@@ -4,12 +4,12 @@ import { cookies } from "next/headers";
 
 export const setAuthToken = async (token: string) => {
   const cookieStore = await cookies();
-  cookieStore.set({ name: "auth_token", value: token });
+  cookieStore.set({ name: "nepcraft_token", value: token });
 };
 
 export const getAuthToken = async () => {
   const cookieStore = await cookies();
-  return cookieStore.get("auth_token")?.value;
+  return cookieStore.get("nepcraft_token")?.value;
 };
 
 export const setUserData = async (userData: any) => {
@@ -25,6 +25,6 @@ export const getUserData = async () => {
 
 export const clearAuthCookies = async () => {
   const cookieStore = await cookies();
-  cookieStore.delete("auth_token");
+  cookieStore.delete("nepcraft_token");
   cookieStore.delete("user_data");
 };
