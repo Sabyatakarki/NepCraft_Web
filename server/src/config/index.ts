@@ -15,6 +15,6 @@ export const PORT:number =
 
  export const JWT_SECRET:string =
  process.env.JWT_SECRET || "merosecret";
- //fallback to local mongodb if env is mmissing
+ 
 
- //applications level CONSTANTS
+ 
