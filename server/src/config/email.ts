@@ -12,7 +12,7 @@ export const transporter = nodemailer.createTransport({
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
     const mailOptions = {
-        from: `Mero mini grocery app <${EMAIL_USER}>`,
+        from: `Nepcraft<${EMAIL_USER}>`,
         to,
         subject,
         html,
