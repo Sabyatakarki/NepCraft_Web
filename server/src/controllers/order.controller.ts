@@ -4,7 +4,6 @@ import { HttpError } from "../errors/http-error";
 
 const orderService = new OrderService();
 
-// CREATE ORDER
 export const createOrder = async (
   req: Request,
   res: Response,
@@ -60,7 +59,6 @@ export const createOrder = async (
   }
 };
 
-// GET LOGGED IN USER ORDERS
 export const getMyOrders = async (
   req: Request,
   res: Response,
@@ -82,8 +80,6 @@ export const getMyOrders = async (
   }
 };
 
-
-// GET SINGLE ORDER
 export const getOrderById = async (
   req: Request,
   res: Response,
