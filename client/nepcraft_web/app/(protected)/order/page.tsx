@@ -152,7 +152,7 @@ export default function OrdersPage() {
                     </div>
                   </div>
 
-                  {/* Right Sidebar: Compact Delivery Summary Layout */}
+                  
                   <div className="lg:col-span-4 bg-[#FFFDFB] border border-[#F5EBE1] rounded-xl p-5 space-y-4 text-xs">
                     <div>
                       <div className="flex items-center gap-1.5 text-[#3D251E] font-bold mb-2">

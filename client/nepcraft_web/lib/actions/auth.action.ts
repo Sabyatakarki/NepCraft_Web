@@ -36,10 +36,9 @@ export const handleLogin = async (formData: any) => {
       };
     }
 
-    // Store token in cookie
     await setAuthToken(result.token);
 
-    // Store user data in cookie
+  
     await setUserData(result.data);
 
     return {
