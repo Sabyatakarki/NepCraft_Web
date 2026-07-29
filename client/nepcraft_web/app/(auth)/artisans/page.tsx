@@ -145,7 +145,7 @@ export default function ArtisansPage() {
         </div>
       </section>
 
-      {/* === UTILITIES FILTER BAR === */}
+     
       <div className="px-6 lg:px-16 pt-6 pb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto relative">
           <div className="relative w-full sm:w-64">
@@ -159,7 +159,7 @@ export default function ArtisansPage() {
             <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#A8928A]" />
           </div>
           
-          {/* Craft Type Selector */}
+          
           <div className="relative w-full sm:w-auto">
             <button 
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
