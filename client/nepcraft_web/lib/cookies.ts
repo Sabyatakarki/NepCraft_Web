@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 export const setAuthToken = async (token: string) => {
   const cookieStore = await cookies();
-  cookieStore.set({ name: "nepcraft_token", value: token });
+  cookieStore.set({ name: "nepcraft_token", value: token });//project name easy hunxa
 };
 
 export const getAuthToken = async () => {
