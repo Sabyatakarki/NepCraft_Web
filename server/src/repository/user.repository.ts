@@ -8,7 +8,6 @@ export interface IUserRepository {
   createUser(userData: Partial<IUser>): Promise<IUser>;
   getUserById(id: string): Promise<IUser | null>;
 
-  //this is the get all users
   getAllUsers(
     page: number,
     size: number,
