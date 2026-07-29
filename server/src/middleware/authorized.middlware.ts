@@ -11,7 +11,7 @@ declare global {
             user?: Record<string, any> | IUser
         }
     }
-} // adding tag (user) to request, can use req.user
+} 
 let userRepository = new UserRepository();
 export const authorizedMiddleware =
     async (req: Request, res: Response, next: NextFunction) => {
@@ -28,14 +28,14 @@ export const authorizedMiddleware =
             const decodedToken = jwt.verify(token, JWT_SECRET) as Record<string, any>;
             if (!decodedToken || !decodedToken.id) {
                 throw new HttpError(401, 'Unauthorized JWT unverified');
-            } // make function async
+            } 
             const user = await userRepository.getUserById(decodedToken.id);
             if (!user) throw new HttpError(401, 'Unauthorized user not found');
             req.user = {
   ...user.toObject(),
   _id: user._id.toString()
 };
- // attach user to request (like tag)
+ 
             next();
         } catch (err: Error | any) {
             return res.status(err.statusCode || 500).json(
