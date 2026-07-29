@@ -97,17 +97,17 @@ export default function AboutUsPage() {
             </div>
           </div>
 
-          {/* Overlapping Image Layout */}
+        
         <div className="lg:col-span-5 flex justify-center items-center gap-4 h-[320px] relative mt-8 lg:mt-0">
         
-        {/* Left Image - Smaller, sits lower */}
+        
         <img 
             src="/pottery.jpg" 
             alt="Artisan Crafting 1" 
             className="w-[115px] h-[200px] object-cover rounded-3xl shadow-md transform translate-y-4"
         />
         
-        {/* Middle Image - Significantly Higher and Dominant */}
+        
         <img 
             src="/bowl.jpg" 
             alt="Artisan Crafting 2" 
@@ -125,7 +125,7 @@ export default function AboutUsPage() {
         </div>
       </section>
 
-      {/* === OUR MISSIONS SECTION === */}
+   
       <section className="px-6 lg:px-16 py-9 bg-[#FFFDFB]">
         <h3 className="text-center font-serif text-2xl font-bold text-[#C87A53] mb-12">Our Missions</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6.5xl mx-auto">
@@ -141,7 +141,7 @@ export default function AboutUsPage() {
         </div>
       </section>
 
-      {/* === MEET OUR ARTISANS SECTION === */}
+      
       <section className="px-6 lg:px-16 py-16 bg-[#FFFDFB]">
         <h3 className="text-center font-serif text-2xl font-bold text-[#C87A53] mb-12">Meet Our Artisans</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 max-w-6.5xl mx-auto">
@@ -156,7 +156,7 @@ export default function AboutUsPage() {
         </div>
       </section>
 
-      {/* === FOOTER COMPONENT === */}
+      
       <footer className="bg-[#FFF2E5] pt-12 border-t border-[#EFE4D6]">
         <div className="px-6 lg:px-16 pb-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           
