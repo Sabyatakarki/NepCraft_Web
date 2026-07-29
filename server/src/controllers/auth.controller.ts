@@ -6,7 +6,7 @@ import z from "zod";
 const userService = new UserService();
 
 export class AuthController {
-  // Register user
+
   async register(req: Request, res: Response) {
     try {
       const parsedData = CreateUserDTO.safeParse(req.body);
@@ -115,14 +115,14 @@ export class AuthController {
       const existingUser = await userService.getUserById(userId);
       parsedData.data.role = existingUser.role;
 
-      // Handle profile image upload
+      
       if (req.file) {
         parsedData.data.imageUrl =
 "/uploads/profile_pictures/" + req.file.filename;
       }
       
 
-      // Update user
+     
       const updatedUser = await userService.updateUser(userId, parsedData.data);
 
       return res.status(200).json({
