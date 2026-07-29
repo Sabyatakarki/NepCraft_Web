@@ -13,7 +13,6 @@ import {
 
 const router = express.Router();
 
-// User Routes
 router.post("/",authorizedMiddleware,createOrder);
 
 router.get("/my-orders", authorizedMiddleware, getMyOrders);
