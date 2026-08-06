@@ -159,7 +159,6 @@ export default function ArtisansPage() {
             <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#A8928A]" />
           </div>
           
-          
           <div className="relative w-full sm:w-auto">
             <button 
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
